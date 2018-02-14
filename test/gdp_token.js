@@ -6,6 +6,6 @@ contract('GDPToken', (accounts) => {
 
     let gdp_token = await GDPToken.new();
     let limit = await gdp_token.totalSupplyLimit.call();
-    assert.equal(web3.fromWei(limit.toNumber(), 'ether'), 100000000, 'limits are different');
+    assert.equal(web3.fromWei(limit.toNumber(), 'ether'), TOTAL_SUPPLY_LIMIT, 'limits are different');
   });
 });
