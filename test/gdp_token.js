@@ -2,12 +2,10 @@ let GDPToken = artifacts.require("./GDPToken.sol");
 
 contract('GDPToken', (accounts) => {
   it('should validate limit for total supply', async () => {
-    const TOTAL_SUPPLY_LIMIT = 100000000 * 10 ** 18;
+    const TOTAL_SUPPLY_LIMIT = 100000000; //  use without decimals
 
     let gdp_token = await GDPToken.new();
     let limit = await gdp_token.totalSupplyLimit.call();
-    console.log(limit.toNumber());
-    console.log(TOTAL_SUPPLY_LIMIT);
-    assert.equal(limit.toNumber(), TOTAL_SUPPLY_LIMIT, 'limits are different');
+    assert.equal(web3.fromWei(limit.toNumber(), 'ether'), 100000000, 'limits are different');
   });
 });
