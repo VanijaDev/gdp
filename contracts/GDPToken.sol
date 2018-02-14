@@ -4,7 +4,7 @@ import "../node_modules/zeppelin-solidity/contracts/token/ERC20/MintableToken.so
 
 contract GDPToken is MintableToken {
 
-  string public constant name = "TODO";
+  string public constant name = "GOODS DIGITAL PASSPORT";
   string public constant symbol = "GDP";
   uint8 public constant decimals = 18;
 
