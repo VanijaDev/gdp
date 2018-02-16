@@ -1,4 +1,4 @@
-let GDPToken = artifacts.require("./GDPToken.sol");
+let GDPToken = artifacts.require('./GDPToken.sol');
 const Asserts = require('./helpers/asserts');
 
 contract('GDPToken', (accounts) => {
