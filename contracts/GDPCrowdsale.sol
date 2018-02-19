@@ -18,7 +18,7 @@ contract GDPCrowdsale {
     * how many token units a buyer gets per wei
     * @dev includes pre-ICO (0 element) and ICO stages
   */
-  uint256[] public rate; // 0.1 ether
+  uint256[] public rate; // tokens per ether
 
   // amount of raised money in wei
   uint256 public weiRaised;
@@ -40,7 +40,7 @@ contract GDPCrowdsale {
    */
 
    function crowdsaleStagesCount() public view returns(uint) {
-     return startTime.length;
+     return rate.length;
    }
 
   /**

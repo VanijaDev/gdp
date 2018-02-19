@@ -1,14 +1,15 @@
-let GDPToken = artifacts.require('./GDPToken.sol');
-let GDPCrowdsale = artifacts.require('./GDPCrowdsale.sol');
+const GDPToken = artifacts.require('./GDPToken.sol');
+const GDPCrowdsale = artifacts.require('./GDPCrowdsale.sol');
 const Asserts = require('./helpers/asserts');
+const Chai = require('chai');
 
 
 const Stage_length = 86400; // 1 day
 const CurrentTime = web3.eth.getBlock('latest').timestamp;
 
 const WalletAddr = web3.eth.accounts[9];
-let StartTime = [];
-let EndTime = [];
+let startTime = [];
+let endTime = [];
 
 /**
  * Week   0 1 ETH - 3000 - GDP 
@@ -16,7 +17,7 @@ let EndTime = [];
  * Week 3&4 1 ETH - 2000 - GDP
  * Week 5&6 1 ETH - 1800 - GDP
  */
-let Rate = [3000, 2200, 2000, 1800];
+const Rate = [3000, 2200, 2000, 1800];
 
 contract('GDPCrowdsale', (accounts) => {
 
@@ -27,24 +28,28 @@ contract('GDPCrowdsale', (accounts) => {
   beforeEach('reset', async () => {
 
     //  construct stages and rates
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < Rate.length; i++) {
       if (i == 0) {
-        StartTime.push(CurrentTime + 1);
-        EndTime.push(CurrentTime + 1 + Stage_length);
+        startTime.push(CurrentTime + 1);
+        endTime.push(CurrentTime + 1 + Stage_length);
       } else {
-        StartTime.push(EndTime[i - 1]);
-        EndTime.push(StartTime[i - 1] + Stage_length);
+        startTime.push(endTime[i - 1] + 1);
+        endTime.push(startTime[i] + Stage_length);
       }
     }
 
-    crowdsale = await GDPCrowdsale.new(StartTime, EndTime, Rate, WalletAddr);
+    crowdsale = await GDPCrowdsale.new(startTime, endTime, Rate, WalletAddr);
   });
 
   describe('initial validation', () => {
     it('validate initial values', async () => {
-      const res = await crowdsale.crowdsaleStagesCount.call();
-      console.log(res.toNumber());
-      // assert.equal(await crowdsale.startTime.call(0).toNumber(), 1);
+      assert.equal((await crowdsale.crowdsaleStagesCount.call()).toNumber(), Rate.length, 'wrong ICO stages count');
+      assert.notEqual(await crowdsale.token.call(), 0, 'token should be already created');
+    });
+
+    it('validate newly created token', async () => {
+      let token = await GDPToken.at(await crowdsale.token.call());
+      assert.equal(await token.owner.call(), crowdsale.address, 'wrong token owner address');
     });
   });
 
