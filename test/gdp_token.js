@@ -19,9 +19,16 @@ contract('GDPToken', (accounts) => {
     });
   });
 
-  it('should not mint more than limit', async () => {
-    await gdp_token.mint(accounts[1], web3.toWei(99000000, "ether"));
-    await asserts.throws(gdp_token.mint(accounts[1], web3.toWei(99000000, "ether")), 'mint should fail bacause more than limit');
+  describe('minting', () => {
+    it('should not mint more than limit', async () => {
+      const MaxAmount = 100000000;
+      const FirstMintAmount = 99000000;
+      const DiffMintAmount = 1000000;
+
+      await gdp_token.mint(accounts[1], web3.toWei(FirstMintAmount, "ether"));
+      await asserts.throws(gdp_token.mint(accounts[1], web3.toWei(FirstMintAmount, "ether")), 'mint should fail bacause more than limit');
+      await asserts.doesNotThrow(gdp_token.mint(accounts[1], web3.toWei(DiffMintAmount, "ether")), 'should be successfully minted');
+    });
   });
 
 });
