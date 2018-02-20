@@ -90,7 +90,10 @@ contract GDPCrowdsale {
     forwardFunds(msg.value);
   }
 
-  function crowdsaleStagesCount() public view returns(uint) {
+  /**
+    * amount of ICO stages (including pre-ICO)
+   */
+  function stagesCount() public view returns(uint) {
     return rates.length;
   }
 
