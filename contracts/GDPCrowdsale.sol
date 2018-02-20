@@ -70,12 +70,14 @@ contract GDPCrowdsale {
     require(validPurchase());
 
     // calculate token amount to be created
-    int256 stage = currentCrowdsaleStage(now, startTimes, endTimes);
-    require(stage >= 0);
+    bool stageFound;
+    uint256 stageIdx;
+    (stageFound, stageIdx) = currentCrowdsaleStage(now, startTimes, endTimes);
+    require(stageFound);
 
     uint256 weiAmount = msg.value;
 
-    uint256 rate = rates[uint(stage)];
+    uint256 rate = rates[stageIdx];
 
     uint256 tokens = getTokenAmount(weiAmount, rate);
 
@@ -154,16 +156,15 @@ contract GDPCrowdsale {
     return false;
   }
 
-  function currentCrowdsaleStage(uint256 _timeNow, uint256[] _startTimes, uint256[] _endTimes) private pure returns (int256) {
+  function currentCrowdsaleStage(uint256 _timeNow, uint256[] _startTimes, uint256[] _endTimes) private pure returns (bool found, uint256 idx) {
     uint256 length = _startTimes.length;
 
-    for(uint i = 0; i < length; i ++) {
+    for(uint256 i = 0; i < length; i ++) {
       if(_timeNow >= _startTimes[i] && _timeNow <= _endTimes[i]) {
-        return int256(i);
+        found = true;
+        idx = i;
       }
     }
-
-    return -1;
   }
 
   function getTokenAmount(uint256 _weiAmount, uint256 _rate) private pure returns(uint256) {
