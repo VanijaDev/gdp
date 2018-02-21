@@ -5,8 +5,6 @@ import "../node_modules/zeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract GDPCrowdsale {
 
-  uint256 private WeiInEth = 1000000000000000000;
-
   using SafeMath for uint256;
   
   // The token being sold
@@ -81,7 +79,7 @@ contract GDPCrowdsale {
 
     uint256 rate = rates[stageIdx];
 
-    uint256 tokens = getTokenAmount(weiAmount, rate, WeiInEth);
+    uint256 tokens = getTokenAmount(weiAmount, rate);
 
     //  update weiRaised 
     weiRaised = weiRaised.add(weiAmount);
@@ -153,8 +151,8 @@ contract GDPCrowdsale {
     }
   }
 
-  function getTokenAmount(uint256 _weiAmount, uint256 _rate, uint256 _weiInEth) private pure returns(uint256) {
-    return _weiAmount.mul((_rate / _weiInEth));
+  function getTokenAmount(uint256 _weiAmount, uint256 _rate) private pure returns(uint256) {
+    return _weiAmount.mul(_rate);
   }
 
   // send ether to the fund collection wallet
