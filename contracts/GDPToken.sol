@@ -8,6 +8,7 @@ contract GDPToken is MintableToken {
   string public constant symbol = "GDP";
   uint8 public constant decimals = 18;
 
+  //  1 000 000 as maximum token amount
   uint public totalSupplyLimit = 100000000 * uint(10)**decimals;
 
   function GDPToken() public {
