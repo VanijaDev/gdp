@@ -134,29 +134,10 @@ contract GDPCrowdsale {
   }
 
   function validPurchase() private view returns (bool) {
-    bool withinCrowdsalePeriod = purchaseTimingIsValid(now, startTimes, endTimes);
+    bool withinCrowdsalePeriod = now >= startTimes[0] && now <= endTimes[endTimes.length - 1];
     bool nonZeroPurchase = msg.value > 0;
 
     return withinCrowdsalePeriod && nonZeroPurchase;
-  }
-  
-  //  validate if purchase is within one of the crowdsale stages
-  function purchaseTimingIsValid(uint _timeNow, uint256[] _startTimes, uint256[] _endTime) private pure returns (bool) {
-    uint stageCount = _startTimes.length;
-    
-    //  validate if now is within Crowdsale stages period
-    if(_timeNow < _startTimes[0] || _timeNow > _endTime[stageCount - 1]) {
-      return false;
-    }
-    
-    //  validate if now is within some crowdsale stage
-    for(uint i = 0; i < stageCount; i ++) {
-      if(_timeNow >= _startTimes[i] && _timeNow <= _endTime[i]) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   function currentCrowdsaleStage(uint256 _timeNow, uint256[] _startTimes, uint256[] _endTimes) private pure returns (bool found, uint256 idx) {
