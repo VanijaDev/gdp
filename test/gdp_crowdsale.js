@@ -44,6 +44,8 @@ contract('GDPCrowdsale', (accounts) => {
   });
 
   describe('initial validation', () => {
+    const TokenTotalSupplyLimit = 100000000 * 10 ** 18;
+
     it('validate initial values', async () => {
       assert.equal((await crowdsale.stagesCount.call()).toNumber(), Rates.length, 'wrong ICO stages count');
       assert.notEqual(await crowdsale.token.call(), 0, 'token should be already created');
@@ -53,6 +55,7 @@ contract('GDPCrowdsale', (accounts) => {
     it('validate newly created token', async () => {
       let token = GDPToken.at(await crowdsale.token.call());
       assert.equal(await token.owner.call(), crowdsale.address, 'wrong token owner address');
+      assert.equal(await token.totalSupplyLimit.call(), TokenTotalSupplyLimit, 'wrong total supply limit');
     });
   });
 
