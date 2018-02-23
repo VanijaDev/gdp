@@ -1,18 +1,28 @@
+let GDPToken = artifacts.require("./GDPToken.sol");
 let GDPCrowdsale = artifacts.require("./GDPCrowdsale.sol");
-let IncreaseTime = require('../test/helpers/increaseTime');
-let LatestTime = require('../test/helpers/latestTime');
 
-const STAGE_LENGTH = IncreaseTime.duration.days(2); // 2 days
-const WALLET_ADDR = web3.eth.accounts[9];
-const RATES = [3000, 2200, 2000, 1800];
+const IncreaseTime = require('../test/helpers/increaseTime');
 
-let startTimes = [];
-let endTimes = [];
-
-console.log('   INSIDE:    ' + web3.eth.getBlock('latest').timestamp);
-console.log('   OTSIDE:    ' + LatestTime.latestTime());
-
-// function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256[] _rates, address _wallet) public {
 module.exports = function (deployer) {
-    deployer.deploy(GDPCrowdsale, [11111111111111, 22222222222222, 33333333333333, 44444444444444], [11111111111112, 22222222222223, 33333333333334, 44444444444445], RATES, WALLET_ADDR);
+    const RATES = [3000, 2200, 2000, 1800];
+    const STAGE_LENGTH = IncreaseTime.duration.days(2); // 2 days
+    const WALLET = web3.eth.accounts[9];
+
+    let startTimes = [];
+    let endTimes = [];
+
+    //  construct stages and rates
+    let latestTime = web3.eth.getBlock('latest').timestamp;
+
+    for (let i = 0; i < RATES.length; i++) {
+        if (i == 0) {
+            startTimes.push(latestTime + 1);
+            endTimes.push(latestTime + 1 + STAGE_LENGTH);
+        } else {
+            startTimes.push(endTimes[i - 1] + 1);
+            endTimes.push(startTimes[i] + STAGE_LENGTH);
+        }
+    }
+
+    return deployer.deploy(GDPCrowdsale, startTimes, endTimes, RATES, WALLET);
 };
