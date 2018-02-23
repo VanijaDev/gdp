@@ -1,9 +1,10 @@
 pragma solidity ^0.4.18;
 
 import "./GDPToken.sol";
+import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
 import "../node_modules/zeppelin-solidity/contracts/math/SafeMath.sol";
 
-contract GDPCrowdsale {
+contract GDPCrowdsale is Ownable {
 
   using SafeMath for uint256;
   
@@ -62,6 +63,12 @@ contract GDPCrowdsale {
   // @return true if crowdsale event has ended
   function hasEnded() public view returns (bool) {
     return now > endTimes[endTimes.length-1];
+  }
+
+  //  owner is able to transfer tokens manually
+  function transferTokens(address beneficiary, uint256 tokens) public onlyOwner {
+    token.mint(beneficiary, tokens);
+    TokenPurchase(msg.sender, beneficiary, 0, tokens);
   }
 
   // low level token purchase function
