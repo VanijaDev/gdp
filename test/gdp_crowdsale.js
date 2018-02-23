@@ -2,8 +2,10 @@ const GDPToken = artifacts.require('./GDPToken.sol');
 const GDPCrowdsale = artifacts.require('./GDPCrowdsale.sol');
 const Asserts = require('./helpers/asserts');
 const Chai = require('chai');
+
 const IncreaseTime = require('./helpers/increaseTime');
 const LatestTime = require('./helpers/latestTime');
+const Reverter = require('./helpers/reverter');
 
 const STAGE_LENGTH = IncreaseTime.duration.days(2); // 2 days
 const WALLET_ADDR = web3.eth.accounts[9];
@@ -24,22 +26,26 @@ contract('GDPCrowdsale', (accounts) => {
   let asserts = Asserts(assert);
   let crowdsale;
 
-  beforeEach('reset', async () => {
-    startTimes = [];
-    endTimes = [];
+  // beforeEach('reset', async () => {
+  //   startTimes = [];
+  //   endTimes = [];
 
-    //  construct stages and rates
-    for (let i = 0; i < Rates.length; i++) {
-      if (i == 0) {
-        startTimes.push(LatestTime.latestTime() + 1);
-        endTimes.push(LatestTime.latestTime() + 1 + STAGE_LENGTH);
-      } else {
-        startTimes.push(endTimes[i - 1] + 1);
-        endTimes.push(startTimes[i] + STAGE_LENGTH);
-      }
-    }
+  //   //  construct stages and rates
+  //   for (let i = 0; i < Rates.length; i++) {
+  //     if (i == 0) {
+  //       startTimes.push(LatestTime.latestTime() + 1);
+  //       endTimes.push(LatestTime.latestTime() + 1 + STAGE_LENGTH);
+  //     } else {
+  //       startTimes.push(endTimes[i - 1] + 1);
+  //       endTimes.push(startTimes[i] + STAGE_LENGTH);
+  //     }
+  //   }
 
-    crowdsale = await GDPCrowdsale.new(startTimes, endTimes, Rates, WALLET_ADDR);
+  //   crowdsale = await GDPCrowdsale.new(startTimes, endTimes, Rates, WALLET_ADDR);
+  // });
+
+  afterEach('revert', () => {
+    Reverter.revert;
   });
 
   describe('initial validation', () => {

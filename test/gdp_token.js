@@ -1,4 +1,5 @@
-let GDPToken = artifacts.require('./GDPToken.sol');
+let GDPToken = artifacts.require('../contracts/GDPToken.sol');
+let GDPCrowdsale = artifacts.require('../contracts/GDPCrowdsale.sol');
 const Asserts = require('./helpers/asserts');
 const Reverter = require('./helpers/reverter');
 
@@ -8,7 +9,8 @@ contract('GDPToken', (accounts) => {
   const asserts = Asserts(assert);
 
   before('init', async () => {
-    gdp_token = await GDPToken.deployed();
+    let gdp_crowdsale = await GDPCrowdsale.deployed();
+    gdp_token = GDPToken.at(await gdp_crowdsale.token.call());
   });
 
   afterEach('revert', async () => {
