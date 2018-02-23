@@ -7,13 +7,8 @@ contract('GDPToken', (accounts) => {
   let gdp_token;
   const asserts = Asserts(assert);
 
-  before('init', async () => {
-    let gdp_crowdsale = await GDPCrowdsale.deployed();
-    gdp_token = GDPToken.at(await gdp_crowdsale.token.call());
-  });
-
-  afterEach('revert', async () => {
-    Reverter.revert;
+  beforeEach('reset state', async () => {
+    gdp_token = await GDPToken.new();
   });
 
   describe('initial values', () => {
