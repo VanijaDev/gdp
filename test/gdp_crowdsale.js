@@ -134,7 +134,7 @@ contract('GDPCrowdsale', (accounts) => {
     });
 
 
-    it('buying tokens for 1 ether at stage 0', async () => {
+    it('buying tokens for 1 ether at stage 1', async () => {
       await IncreaseTime.increaseTimeWith(IncreaseTime.duration.minutes(1));
 
       let tx = await crowdsale.sendTransaction({
@@ -158,35 +158,6 @@ contract('GDPCrowdsale', (accounts) => {
       const VALID_TOKEN_AMOUNT = Rates[0] * ACC_1_WEI_SENT;
       assert.equal(acc1Balance, VALID_TOKEN_AMOUNT, 'wrong token amount bought');
     });
-
-    // it.only('buying tokens for 3 ether at stage 1', async () => {
-    //   const ACC_3 = accounts[3];
-    //   const ACC_3_WEI_SENT = web3.toWei(0.3, 'ether');
-
-    //   await IncreaseTime.increaseTimeWith(IncreaseTime.duration.weeks(2));
-
-    //   let tx = await crowdsale.sendTransaction({
-    //     from: ACC_3,
-    //     value: ACC_3_WEI_SENT
-    //   });
-
-    //   // event TokenPurchase(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
-    //   assert.equal(tx.logs.length, 1, 'should be single event');
-    //   const Log = tx.logs[0];
-    //   const Log_Args = Log.args;
-
-    //   assert.equal(Log.event, 'TokenPurchase', 'wrong event, should be TokenPurchase');
-    //   assert.equal(Log_Args.purchaser, ACC_3, 'wrong token purchaser');
-    //   assert.equal(Log_Args.beneficiary, ACC_3, 'wrong token beneficiary');
-    //   assert.equal(Log_Args.value.toNumber(), ACC_3_WEI_SENT, 'wrong value amount, must be ', ACC_3_WEI_SENT);
-    //   assert.equal(Log_Args.amount.toNumber(), web3.toWei(Rates[1], 'ether'), 'wrong token amount');
-
-    //   let token = GDPToken.at(await crowdsale.token());
-    //   let acc3Balance = (await token.balanceOf(ACC_3)).toNumber();
-    //   const VALID_TOKEN_AMOUNT = Rates[1] * ACC_3_WEI_SENT;
-    //   assert.equal(acc3Balance, VALID_TOKEN_AMOUNT, 'wrong token amount bought');
-    // });
-
   });
 
 
