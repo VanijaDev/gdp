@@ -40,11 +40,11 @@ contract GDPCrowdsale is Ownable {
    */
   event TokenPurchase(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
 
-  function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256[] _rates, address _wallet) public {
+  function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256[] _rates, address _wallet, address _token) public {
     require(validate_StartTimes_EndTimes_Rates(_startTimes, _endTimes, now, _rates));
     require(_wallet != address(0));
 
-    token = createTokenContract();
+    token = createTokenContract(_token);
     startTimes = _startTimes;
     endTimes = _endTimes;
     wallet = _wallet;
@@ -136,8 +136,8 @@ contract GDPCrowdsale is Ownable {
   }
 
   // creates the token to be sold.
-  function createTokenContract() private returns (GDPToken) {
-    return new GDPToken();
+  function createTokenContract(address _token) private pure returns (GDPToken) {
+    return GDPToken(_token);
   }
 
   function validPurchase() private view returns (bool) {
