@@ -1,8 +1,8 @@
 pragma solidity ^0.4.18;
 
-import "./GDPToken.sol";
+import './GDPToken.sol';
 import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
-import "../node_modules/zeppelin-solidity/contracts/math/SafeMath.sol";
+import '../node_modules/zeppelin-solidity/contracts/math/SafeMath.sol';
 
 contract GDPCrowdsale is Ownable {
 
@@ -40,11 +40,10 @@ contract GDPCrowdsale is Ownable {
    */
   event TokenPurchase(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
 
-  function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256[] _rates, address _wallet, address _token) public {
+  function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256[] _rates, address _wallet) public payable {
     require(validate_StartTimes_EndTimes_Rates(_startTimes, _endTimes, now, _rates));
     require(_wallet != address(0));
 
-    token = createTokenContract(_token);
     startTimes = _startTimes;
     endTimes = _endTimes;
     wallet = _wallet;
@@ -136,8 +135,8 @@ contract GDPCrowdsale is Ownable {
   }
 
   // creates the token to be sold.
-  function createTokenContract(address _token) private pure returns (GDPToken) {
-    return GDPToken(_token);
+  function createTokenContract() public onlyOwner {
+    token = new GDPToken();
   }
 
   function validPurchase() private view returns (bool) {

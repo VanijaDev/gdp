@@ -71,31 +71,29 @@
  * WORKING
  */
 
-let GDPToken = artifacts.require("./GDPToken.sol");
 let GDPCrowdsale = artifacts.require("./GDPCrowdsale.sol");
 let IncreaseTime = require('../test/helpers/increaseTime');
 
 module.exports = function (deployer, network, accounts) {
-    deployer.deploy(GDPToken).then(async function () {
-        const timestamp = 1519655221;
-        const RATES = [3000, 2200, 2000, 1800];
-        const STAGE_LENGTH = IncreaseTime.duration.days(2);
-        const WALLET = accounts[0];
-        console.log('1:   ', timestamp, RATES, STAGE_LENGTH, WALLET);
+    const timestamp = 1519739547;
+    const RATES = [3000, 2200, 2000, 1800];
+    const STAGE_LENGTH = IncreaseTime.duration.days(2);
+    const WALLET = accounts[0];
+    console.log('1:   ', timestamp, RATES, STAGE_LENGTH, WALLET);
 
-        const times = calculateStartEndTimes(timestamp, RATES, STAGE_LENGTH);
+    const times = calculateStartEndTimes(timestamp, RATES, STAGE_LENGTH);
 
-        const start = times[0];
-        const end = times[1];
-        console.log('start', start);
-        console.log('end', end);
+    const start = times[0];
+    const end = times[1];
+    console.log('start', start);
+    console.log('end', end);
 
-        const token = GDPToken.address;
-        console.log('token', token);
-
-        await deployer.deploy(GDPCrowdsale, start, end, RATES, WALLET, token);
+    deployer.deploy(GDPCrowdsale, start, end, RATES, WALLET, {
+        value: web3.toWei(0.5, 'ether')
+    }).then(async () => {
+        let ico = await GDPCrowdsale.deployed();
+        await ico.createTokenContract();
     });
-
 };
 
 function calculateStartEndTimes(latestTime, rates, stageLength) {
