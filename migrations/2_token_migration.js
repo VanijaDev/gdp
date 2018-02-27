@@ -1,70 +1,49 @@
 /**
- * MANUAL SETTINGS
- * 
- */
-
-// let GDPCrowdsale = artifacts.require("./GDPCrowdsale.sol");
-
-// module.exports = function (deployer, network, accounts) {
-
-//     const START_TIMES = [1519652307, 1519825108, 1519997909, 1520170710]; //  172800
-//     const END_TIMES = [1519825107, 1519997908, 1520170709, 1520343510];
-//     const RATES = [3000, 2200, 2000, 1800];
-//     const WALLET = accounts[0];
-
-
-//     console.log('1:   ', START_TIMES, END_TIMES, RATES, WALLET);
-//     return deployer.deploy(GDPCrowdsale);
-
-// };
-
-
-
-/**
  * ASYNC WAY
  */
 
-// let GDPCrowdsale = artifacts.require("./GDPCrowdsale.sol");
-// const IncreaseTime = require('../test/helpers/increaseTime');
+/*
+let GDPCrowdsale = artifacts.require("./GDPCrowdsale.sol");
+const IncreaseTime = require('../test/helpers/increaseTime');
 
-// module.exports = function (deployer, network, accounts) {
+module.exports = function (deployer, network, accounts) {
 
-//     const RATES = [3000, 2200, 2000, 1800];
-//     const WALLET = accounts[0];
-//     let START_TIMES = []; //  172800
-//     let END_TIMES = [];
+    const RATES = [3000, 2200, 2000, 1800];
+    const WALLET = accounts[0];
+    let START_TIMES = []; //  172800
+    let END_TIMES = [];
 
-//     deployer.then(() => {
-//         return new Promise((accept, reject) => {
-//             web3.eth.getBlock('latest', (err, res) => {
-//                 if (err) {
-//                     return reject(err);
-//                 }
+    deployer.then(() => {
+        return new Promise((accept, reject) => {
+            web3.eth.getBlock('latest', (err, res) => {
+                if (err) {
+                    return reject(err);
+                }
 
-//                 accept(res);
-//             });
-//         });
-//     }).then((block) => {
-//         if (block) {
-// const timestamp = block.timestamp;
-// const RATES = [3000, 2200, 2000, 1800];
-// const STAGE_LENGTH = IncreaseTime.duration.days(2);
-// const WALLET = accounts[0];
-// console.log('1:   ', timestamp, RATES, STAGE_LENGTH, WALLET);
+                accept(res);
+            });
+        });
+    }).then((block) => {
+        if (block) {
+            const timestamp = block.timestamp;
+            const RATES = [3000, 2200, 2000, 1800];
+            const STAGE_LENGTH = IncreaseTime.duration.days(2);
+            const WALLET = accounts[0];
+            console.log('1:   ', timestamp, RATES, STAGE_LENGTH, WALLET);
 
-// const times = calculateStartEndTimes(timestamp, RATES, STAGE_LENGTH);
+            const times = calculateStartEndTimes(timestamp, RATES, STAGE_LENGTH);
 
-// const start = times[0];
-// const end = times[1];
+            const start = times[0];
+            const end = times[1];
 
-//             console.log('2:   ', start, end, RATES, WALLET);
+            console.log('2:   ', start, end, RATES, WALLET);
 
-//             return deployer.deploy(GDPCrowdsale, start, end, RATES, WALLET);
-//         }
-//     });
+            return deployer.deploy(GDPCrowdsale, start, end, RATES, WALLET);
+        }
+    });
 
-// };
-
+};
+*/
 
 
 /**
@@ -75,10 +54,14 @@ let GDPCrowdsale = artifacts.require("./GDPCrowdsale.sol");
 let IncreaseTime = require('../test/helpers/increaseTime');
 
 module.exports = function (deployer, network, accounts) {
-    const timestamp = 1519739547;
     const RATES = [3000, 2200, 2000, 1800];
     const STAGE_LENGTH = IncreaseTime.duration.days(2);
     const WALLET = accounts[0];
+
+    let timestamp = 00000000000; //  IMPORTANT: update this value
+    if (network != 'ropsten') {
+        timestamp = web3.eth.getBlock('latest').timestamp;
+    }
     console.log('1:   ', timestamp, RATES, STAGE_LENGTH, WALLET);
 
     const times = calculateStartEndTimes(timestamp, RATES, STAGE_LENGTH);
