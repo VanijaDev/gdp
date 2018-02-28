@@ -62,14 +62,15 @@ module.exports = function (deployer, network, accounts) {
     if (network != 'ropsten') {
         timestamp = web3.eth.getBlock('latest').timestamp;
     }
-    console.log('1:   ', timestamp, RATES, STAGE_LENGTH, WALLET);
 
     const times = calculateStartEndTimes(timestamp, RATES, STAGE_LENGTH);
 
     const start = times[0];
     const end = times[1];
-    console.log('start', start);
-    console.log('end', end);
+
+    // console.log('1:   ', timestamp, RATES, STAGE_LENGTH, WALLET);
+    // console.log('start', start);
+    // console.log('end', end);
 
     deployer.deploy(GDPCrowdsale, start, end, RATES, WALLET, {
         value: web3.toWei(0.5, 'ether')
