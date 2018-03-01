@@ -73,7 +73,7 @@ module.exports = function (deployer, network, accounts) {
     // console.log('end', end);
 
     deployer.deploy(GDPCrowdsale, start, end, RATES, WALLET, {
-        value: web3.toWei(0.5, 'ether')
+        value: web3.toWei(0.1, 'ether')
     }).then(async () => {
         let ico = await GDPCrowdsale.deployed();
         await ico.createTokenContract();
