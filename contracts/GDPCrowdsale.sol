@@ -41,8 +41,9 @@ contract GDPCrowdsale is Ownable {
   event TokenPurchase(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
 
   function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256[] _rates, address _wallet) public payable {
-    require(validate_StartTimes_EndTimes_Rates(_startTimes, _endTimes, now, _rates));
+    require(msg.value > 0);
     require(_wallet != address(0));
+    require(validate_StartTimes_EndTimes_Rates(_startTimes, _endTimes, now, _rates));
 
     startTimes = _startTimes;
     endTimes = _endTimes;
@@ -75,16 +76,10 @@ contract GDPCrowdsale is Ownable {
     require(beneficiary != address(0));
     require(validPurchase());
 
-    // calculate token amount to be created
-    bool stageFound;
-    uint256 stageIdx;
-    (stageFound, stageIdx) = currentCrowdsaleStage(now, startTimes, endTimes);
-    require(stageFound);
+    uint256 rate = currentRate();
+    require(rate > 0);
 
     uint256 weiAmount = msg.value;
-
-    uint256 rate = rates[stageIdx];
-
     uint256 tokens = getTokenAmount(weiAmount, rate);
 
     //  update weiRaised 
@@ -101,6 +96,17 @@ contract GDPCrowdsale is Ownable {
    */
   function stagesCount() public view returns(uint) {
     return rates.length;
+  }
+
+  function currentRate() public view returns(uint) {
+    bool stageFound;
+    uint256 stageIdx;
+    (stageFound, stageIdx) = currentCrowdsaleStage(now, startTimes, endTimes);
+    
+    if(!stageFound) {
+      return 0;
+    }
+    return rates[stageIdx];
   }
 
   /**
@@ -145,6 +151,10 @@ contract GDPCrowdsale is Ownable {
 
     return withinCrowdsalePeriod && nonZeroPurchase;
   }
+
+  // function testNow() public view returns(uint) {
+  //   return now;
+  // }
 
   function currentCrowdsaleStage(uint256 _timeNow, uint256[] _startTimes, uint256[] _endTimes) private pure returns (bool found, uint256 idx) {
     uint256 length = _startTimes.length;
