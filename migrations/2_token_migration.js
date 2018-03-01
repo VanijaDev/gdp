@@ -68,7 +68,7 @@ module.exports = function (deployer, network, accounts) {
     const start = times[0];
     const end = times[1];
 
-    // console.log('1:   ', timestamp, RATES, STAGE_LENGTH, WALLET);
+    // console.log('timestamp, RATES, STAGE_LENGTH, WALLET:   ', timestamp, RATES, STAGE_LENGTH, WALLET);
     // console.log('start', start);
     // console.log('end', end);
 
