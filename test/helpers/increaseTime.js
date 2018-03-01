@@ -32,7 +32,7 @@ function increaseTime(duration) {
  * @param target time in seconds
  */
 exports.increaseTimeTo = function (target) {
-    let now = LatestTime.latestTime();
+    let now = LatestTime.latestTime(); //web3.eth.getBlock('latest').timestamp; //LatestTime.latestTime;
     if (target < now) throw Error(`Cannot increase current time(${now}) to a moment in the past(${target})`);
     let diff = target - now;
     return increaseTime(diff);
