@@ -40,6 +40,11 @@ contract('GDPCrowdsale', (accounts) => {
       assert.equal(await token.owner.call(), crowdsale.address, 'wrong token owner address');
       assert.equal(await token.totalSupplyLimit.call(), TOKEN_TOTAL_SUPPLY_LIMIT, 'wrong total supply limit');
     });
+
+    it('validate stagesCount value', async () => {
+      let stages = await crowdsale.stagesCount.call();
+      assert.equal(stages, 4, 'wrong stagesCount. Be sure to check migration file.');
+    });
   });
 
   describe('validate purchase', () => {

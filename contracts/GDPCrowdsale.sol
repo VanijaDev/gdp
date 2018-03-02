@@ -92,9 +92,7 @@ contract GDPCrowdsale is Ownable {
     forwardFunds(msg.value);
   }
 
-  /**
-    * amount of ICO stages (including pre-ICO)
-   */
+  // amount of ICO stages (including pre-ICO)
   function stagesCount() public view returns(uint) {
     return rates.length;
   }
@@ -108,6 +106,11 @@ contract GDPCrowdsale is Ownable {
       return 0;
     }
     return rates[stageIdx];
+  }
+
+  function manualMint(address beneficiary, uint256 _amount) public onlyOwner {
+    token.mint(beneficiary, _amount);
+    TokenPurchase(msg.sender, beneficiary, 0, _amount);
   }
 
   /**
