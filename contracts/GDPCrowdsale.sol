@@ -1,10 +1,10 @@
 pragma solidity ^0.4.18;
 
 import './GDPToken.sol';
-import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
+import './PausableCrowdsale.sol';
 import '../node_modules/zeppelin-solidity/contracts/math/SafeMath.sol';
 
-contract GDPCrowdsale is Ownable {
+contract GDPCrowdsale is PausableCrowdsale {
 
   using SafeMath for uint256;
   
@@ -26,9 +26,6 @@ contract GDPCrowdsale is Ownable {
 
   // amount of raised money in wei
   uint256 public weiRaised;
-
-  //  is ICO stopped
-  bool public icoStopped;
 
   /**
    *  EVENTS
@@ -93,14 +90,6 @@ contract GDPCrowdsale is Ownable {
   function manualMint(address beneficiary, uint256 _amount) public onlyOwner {
     token.mint(beneficiary, _amount);
     TokenPurchase(msg.sender, beneficiary, 0, _amount);
-  }
-
-  function stopICO() public onlyOwner returns (bool) {
-    icoStopped = true;
-  }
-
-  function startICO() public onlyOwner returns (bool) {
-    icoStopped = false;
   }
 
   // @return true if crowdsale event has ended

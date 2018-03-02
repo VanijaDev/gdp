@@ -45,6 +45,36 @@ contract('GDPCrowdsale', (accounts) => {
       let stages = await crowdsale.stagesCount.call();
       assert.equal(stages, 4, 'wrong stagesCount. Be sure to check migration file.');
     });
+
+    it('pause state', async () => {
+      assert.isFalse(await crowdsale.isPaused.call(), 'should not be paused at th beginning');
+    });
+  });
+
+  describe('pausable functional', () => {
+    const ACC_1 = accounts[1];
+
+    it('can be set by owner only', async () => {
+      await asserts.throws(crowdsale.pauseCrowdsale.call({
+        from: ACC_1
+      }), 'should fail, only owner can pause');
+
+      asserts.doesNotThrow(crowdsale.pauseCrowdsale.call(), 'owner should be able to pause');
+    });
+
+    it('owner can pause and run again', async () => {
+      await assert.isFalse(await crowdsale.isPaused.call(), 'should not be paused before test');
+
+      await crowdsale.pauseCrowdsale();
+      await assert.isTrue(await crowdsale.isPaused.call(), 'should be paused after owner paused');
+
+      await crowdsale.runCrowdsale();
+      await assert.isFalse(await crowdsale.isPaused.call(), 'should run after owner run');
+    });
+
+    // it('tokens can not be bought while paused', async () => {
+
+    // });
   });
 
   describe('Other', () => {
