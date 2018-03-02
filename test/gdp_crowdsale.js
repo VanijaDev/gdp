@@ -10,6 +10,11 @@ const BigNumber = require('bignumber.js');
 
 contract('GDPCrowdsale', (accounts) => {
 
+  const ACC_1 = accounts[1];
+  const ACC_1_WEI_SENT = new BigNumber(web3.toWei(1, 'ether')).toFixed();
+  const ACC_2 = accounts[2];
+  const ACC_2_WEI_SENT = new BigNumber(web3.toWei(2, 'ether')).toFixed();
+
   const reverter = new Reverter(web3);
   const asserts = Asserts(assert);
   let crowdsale;
@@ -52,8 +57,6 @@ contract('GDPCrowdsale', (accounts) => {
   });
 
   describe('pausable functional', () => {
-    const ACC_1 = accounts[1];
-
     it('can be set by owner only', async () => {
       await asserts.throws(crowdsale.pauseCrowdsale.call({
         from: ACC_1
@@ -79,7 +82,6 @@ contract('GDPCrowdsale', (accounts) => {
 
   describe('Other', () => {
     it('manualMint can be done by owner only', async () => {
-      const ACC_1 = accounts[1];
       const TOKENS = new BigNumber(web3.toWei(3, 'ether')).toFixed();
 
       await asserts.throws(crowdsale.manualMint(ACC_1, TOKENS, {
@@ -87,19 +89,13 @@ contract('GDPCrowdsale', (accounts) => {
       }));
 
       await asserts.doesNotThrow(crowdsale.manualMint(ACC_1, TOKENS));
-      //  TODO: update to use BigNumber
+
       let balance = new BigNumber(await token.balanceOf(ACC_1)).toFixed();
       assert.equal(balance, TOKENS, 'wrong token amount after manual mint');
     });
   });
 
   describe('validate purchase', () => {
-    const ACC_1 = accounts[1];
-    const ACC_1_WEI_SENT = web3.toWei(1, 'ether');
-
-    const ACC_2 = accounts[2];
-    const ACC_2_WEI_SENT = web3.toWei(2, 'ether');
-
     it('validate weiRaised value', async () => {
       await IncreaseTime.increaseTimeWith(IncreaseTime.duration.minutes(1));
 
@@ -192,12 +188,6 @@ contract('GDPCrowdsale', (accounts) => {
   });
 
   describe('IMPORTANT: this should be last tests - validate ICO stages', () => {
-    const ACC_1 = accounts[1];
-    const ACC_1_WEI_SENT = web3.toWei(1, 'ether');
-
-    const ACC_2 = accounts[2];
-    const ACC_2_WEI_SENT = web3.toWei(2, 'ether');
-
     it('can\'t buy tokens before ICO starts', async () => {
       //  TODO: move to separate file (2 places): here and migration file
       const RATES = [3300, 2200, 2000, 1800];
