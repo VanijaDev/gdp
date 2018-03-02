@@ -27,6 +27,9 @@ contract GDPCrowdsale is Ownable {
   // amount of raised money in wei
   uint256 public weiRaised;
 
+  //  is ICO stopped
+  bool public icoStopped;
+
   /**
    *  EVENTS
    */
@@ -61,11 +64,6 @@ contract GDPCrowdsale is Ownable {
     buyTokens(msg.sender);
   }
 
-  // @return true if crowdsale event has ended
-  function hasEnded() public view returns (bool) {
-    return now > endTimes[endTimes.length-1];
-  }
-
   //  owner is able to transfer tokens manually
   function transferTokens(address beneficiary, uint256 tokens) public onlyOwner {
     token.mint(beneficiary, tokens);
@@ -92,12 +90,31 @@ contract GDPCrowdsale is Ownable {
     forwardFunds(msg.value);
   }
 
-  // amount of ICO stages (including pre-ICO)
-  function stagesCount() public view returns(uint) {
+  function manualMint(address beneficiary, uint256 _amount) public onlyOwner {
+    token.mint(beneficiary, _amount);
+    TokenPurchase(msg.sender, beneficiary, 0, _amount);
+  }
+
+  function stopICO() public onlyOwner returns (bool) {
+    icoStopped = true;
+  }
+
+  function startICO() public onlyOwner returns (bool) {
+    icoStopped = false;
+  }
+
+  // @return true if crowdsale event has ended
+  function hasEnded() public view returns (bool) {
+    return now > endTimes[endTimes.length-1];
+  }
+
+  // @return amount of ICO stages (including pre-ICO)
+  function stagesCount() public view returns (uint) {
     return rates.length;
   }
 
-  function currentRate() public view returns(uint) {
+  // @return current rate
+  function currentRate() public view returns (uint) {
     bool stageFound;
     uint256 stageIdx;
     (stageFound, stageIdx) = currentCrowdsaleStage(now, startTimes, endTimes);
@@ -108,16 +125,11 @@ contract GDPCrowdsale is Ownable {
     return rates[stageIdx];
   }
 
-  function manualMint(address beneficiary, uint256 _amount) public onlyOwner {
-    token.mint(beneficiary, _amount);
-    TokenPurchase(msg.sender, beneficiary, 0, _amount);
-  }
-
   /**
     * PRIVATE
   */
 
-  function validate_StartTimes_EndTimes_Rates(uint256[] _startTimes, uint256[] _endTimes, uint _now, uint256[] _rates) private pure returns(bool) {
+  function validate_StartTimes_EndTimes_Rates(uint256[] _startTimes, uint256[] _endTimes, uint _now, uint256[] _rates) private pure returns (bool) {
     uint startTimesLength = _startTimes.length;
 
     //  length must be qual
