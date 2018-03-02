@@ -6,6 +6,7 @@ const Reverter = require('./helpers/reverter');
 const IncreaseTime = require('../test/helpers/increaseTime');
 const LatestTime = require('../test/helpers/latestTime');
 const Chai = require('chai');
+const BigNumber = require('bignumber.js');
 
 contract('GDPCrowdsale', (accounts) => {
 
@@ -75,8 +76,9 @@ contract('GDPCrowdsale', (accounts) => {
 
     it('validate wallet receives correct ETH amount', async () => {
       await IncreaseTime.increaseTimeWith(IncreaseTime.duration.minutes(1));
+      let wallet = await crowdsale.wallet.call();
 
-      let walletFundsBefore = (web3.eth.getBalance(await crowdsale.wallet.call())).toNumber();
+      let walletFundsBefore = (web3.eth.getBalance(wallet)).toNumber();
 
       //  1
       await crowdsale.sendTransaction({
@@ -84,7 +86,7 @@ contract('GDPCrowdsale', (accounts) => {
         value: ACC_1_WEI_SENT
       });
 
-      let walletFundsAfter_Acc1 = (web3.eth.getBalance(await crowdsale.wallet.call())).toNumber();
+      let walletFundsAfter_Acc1 = (web3.eth.getBalance(wallet)).toNumber();
       let diff = walletFundsAfter_Acc1 - walletFundsBefore;
       assert.equal(ACC_1_WEI_SENT, diff, 'wrong funds in wallet after ACC_1 bought tokens');
 
@@ -94,7 +96,7 @@ contract('GDPCrowdsale', (accounts) => {
         value: ACC_2_WEI_SENT
       });
 
-      let walletFundsAfter_Acc2 = (web3.eth.getBalance(await crowdsale.wallet.call())).toNumber();
+      let walletFundsAfter_Acc2 = (web3.eth.getBalance(wallet)).toNumber();
       diff = walletFundsAfter_Acc2 - walletFundsAfter_Acc1;
       assert.equal(ACC_2_WEI_SENT, diff, 'wrong funds in wallet after ACC_2 bought tokens');
     });
