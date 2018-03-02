@@ -56,7 +56,7 @@ contract('GDPCrowdsale', (accounts) => {
     });
   });
 
-  describe('pausable functional', () => {
+  describe.only('pausable functional', () => {
     it('can be set by owner only', async () => {
       await asserts.throws(crowdsale.pauseCrowdsale.call({
         from: ACC_1
@@ -75,9 +75,13 @@ contract('GDPCrowdsale', (accounts) => {
       await assert.isFalse(await crowdsale.isPaused.call(), 'should run after owner run');
     });
 
-    // it('tokens can not be bought while paused', async () => {
-
-    // });
+    it('tokens can not be bought while paused', async () => {
+      await crowdsale.pauseCrowdsale();
+      asserts.throws(crowdsale.sendTransaction({
+        from: ACC_1,
+        value: ACC_1_WEI_SENT
+      }));
+    });
   });
 
   describe('Other', () => {
