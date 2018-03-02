@@ -38,6 +38,7 @@ contract GDPCrowdsale is Ownable {
    * @param value weis paid for purchase
    * @param amount amount of tokens purchased
    */
+   // TODO: uptade to styleguides
   event TokenPurchase(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
 
   function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256[] _rates, address _wallet) public payable {
@@ -56,7 +57,7 @@ contract GDPCrowdsale is Ownable {
    */
    
   // fallback function can be used to buy tokens
-  function () external payable {
+  function() external payable {
     buyTokens(msg.sender);
   }
 
