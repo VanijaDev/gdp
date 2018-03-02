@@ -47,6 +47,22 @@ contract('GDPCrowdsale', (accounts) => {
     });
   });
 
+  describe('Other', () => {
+    it('manualMint can be done by owner only', async () => {
+      const ACC_1 = accounts[1];
+      const TOKENS = new BigNumber(web3.toWei(3, 'ether')).toFixed();
+
+      await asserts.throws(crowdsale.manualMint(ACC_1, TOKENS, {
+        from: ACC_1
+      }));
+
+      await asserts.doesNotThrow(crowdsale.manualMint(ACC_1, TOKENS));
+      //  TODO: update to use BigNumber
+      let balance = new BigNumber(await token.balanceOf(ACC_1)).toFixed();
+      assert.equal(balance, TOKENS, 'wrong token amount after manual mint');
+    });
+  });
+
   describe('validate purchase', () => {
     const ACC_1 = accounts[1];
     const ACC_1_WEI_SENT = web3.toWei(1, 'ether');
