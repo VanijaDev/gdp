@@ -56,7 +56,7 @@ contract('GDPCrowdsale', (accounts) => {
     });
   });
 
-  describe.only('pausable functional', () => {
+  describe('pausable functional', () => {
     it('can be set by owner only', async () => {
       await asserts.throws(crowdsale.pauseCrowdsale.call({
         from: ACC_1
