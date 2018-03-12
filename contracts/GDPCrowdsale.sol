@@ -61,14 +61,8 @@ contract GDPCrowdsale is PausableCrowdsale {
     buyTokens(msg.sender);
   }
 
-  //  owner is able to transfer tokens manually
-  function transferTokens(address beneficiary, uint256 tokens) public onlyOwner {
-    token.mint(beneficiary, tokens);
-    TokenPurchase(msg.sender, beneficiary, 0, tokens);
-  }
-
   // low level token purchase function
-  function buyTokens(address beneficiary) public payable {
+  function buyTokens(address beneficiary) isRunning public payable {
     require(beneficiary != address(0));
     require(validPurchase());
 
@@ -87,7 +81,8 @@ contract GDPCrowdsale is PausableCrowdsale {
     forwardFunds(msg.value);
   }
 
-  function manualMint(address beneficiary, uint256 _amount) public onlyOwner {
+  //  owner is able to mint tokens manually
+  function manualMint(address beneficiary, uint256 _amount) onlyOwner isRunning public {
     token.mint(beneficiary, _amount);
     TokenPurchase(msg.sender, beneficiary, 0, _amount);
   }

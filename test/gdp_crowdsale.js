@@ -63,24 +63,30 @@ contract('GDPCrowdsale', (accounts) => {
       }), 'should fail, only owner can pause');
 
       asserts.doesNotThrow(crowdsale.pauseCrowdsale.call(), 'owner should be able to pause');
+      //  TODO: test logs
     });
 
     it('owner can pause and run again', async () => {
-      await assert.isFalse(await crowdsale.isPaused.call(), 'should not be paused before test');
+      assert.isFalse(await crowdsale.isPaused.call(), 'should not be paused before test');
 
       await crowdsale.pauseCrowdsale();
-      await assert.isTrue(await crowdsale.isPaused.call(), 'should be paused after owner paused');
+      assert.isTrue(await crowdsale.isPaused.call(), 'should be paused after owner paused');
 
-      await crowdsale.runCrowdsale();
-      await assert.isFalse(await crowdsale.isPaused.call(), 'should run after owner run');
+      await crowdsale.restoreCrowdsale();
+      assert.isFalse(await crowdsale.isPaused.call(), 'should run after owner run');
     });
 
     it('tokens can not be bought while paused', async () => {
       await crowdsale.pauseCrowdsale();
-      asserts.throws(crowdsale.sendTransaction({
+
+      //  buy tokens
+      await asserts.throws(crowdsale.sendTransaction({
         from: ACC_1,
         value: ACC_1_WEI_SENT
       }));
+
+      //  manual mint
+      await asserts.throws(crowdsale.manualMint(0x123, 111), 'manual mint can not be performed, while crowdsale is paused.');
     });
   });
 

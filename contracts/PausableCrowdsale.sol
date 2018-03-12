@@ -9,16 +9,24 @@ import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
 
 contract PausableCrowdsale is Ownable {
 
-bool public isPaused;
+    bool public isPaused;
 
-event CrowdsalePaused();
+    event CrowdsalePaused();
+    event CrowdsaleRestored();
 
-function pauseCrowdsale() public onlyOwner {
-    isPaused = true;
-}
+    modifier isRunning() {
+        require(!isPaused);
+        _;
+    }
 
-function runCrowdsale() public onlyOwner {
-    isPaused = false;
-}
+    function pauseCrowdsale() public onlyOwner {
+        isPaused = true;
+        CrowdsalePaused();
+    }
+
+    function restoreCrowdsale() public onlyOwner {
+        isPaused = false;
+        CrowdsaleRestored();
+    }
   
 }
