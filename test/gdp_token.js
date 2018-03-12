@@ -38,13 +38,13 @@ contract('GDPToken', (accounts) => {
       let Acc_1 = accounts[1];
       let decimals = await token.decimals.call();
 
-      await crowdsale.transferTokens(Acc_1, web3.toWei(FirstMintAmount, "ether"));
+      await crowdsale.manualMint(Acc_1, web3.toWei(FirstMintAmount, "ether"));
 
       const CorrectBalance_FirstMintAmount = FirstMintAmount * 10 ** decimals;
       assert.equal((await token.balanceOf.call(Acc_1)).toNumber(), CorrectBalance_FirstMintAmount, 'wrong balance after FirstMintAmount');
 
-      await asserts.throws(crowdsale.transferTokens(Acc_1, web3.toWei(FirstMintAmount, "ether")), 'mint should fail bacause more than limit');
-      await asserts.doesNotThrow(crowdsale.transferTokens(Acc_1, web3.toWei(DiffMintAmount, "ether")), 'should be successfully minted');
+      await asserts.throws(crowdsale.manualMint(Acc_1, web3.toWei(FirstMintAmount, "ether")), 'mint should fail bacause more than limit');
+      await asserts.doesNotThrow(crowdsale.manualMint(Acc_1, web3.toWei(DiffMintAmount, "ether")), 'should be successfully minted');
 
       const CorrectBalance_LastMintAmount = MaxAmount * 10 ** decimals;
       assert.equal((await token.balanceOf.call(Acc_1)).toNumber(), CorrectBalance_LastMintAmount, 'wrong balance after last mint');
