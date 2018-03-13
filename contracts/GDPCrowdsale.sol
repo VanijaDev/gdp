@@ -186,10 +186,6 @@ contract GDPCrowdsale is PausableCrowdsale {
     return withinCrowdsalePeriod && nonZeroPurchase;
   }
 
-  // function testNow() public view returns(uint) {
-  //   return now;
-  // }
-
   function currentCrowdsaleStage(uint256 _timeNow, uint256[] _startTimes, uint256[] _endTimes) private pure returns (bool found, uint256 idx) {
     uint256 length = _startTimes.length;
 
