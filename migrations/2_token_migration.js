@@ -80,6 +80,13 @@ module.exports = function (deployer, network, accounts) {
     });
 };
 
+/**
+ * next stage should start on the next second, when previous stage has ended
+ * 
+ * @param {uint} latestTime - time of the current block
+ * @param {[uint]} rates - rates for stages
+ * @param {uint} stageLength - lenght of each stage
+ */
 function calculateStartEndTimes(latestTime, rates, stageLength) {
     let startTimes = [];
     let endTimes = [];
