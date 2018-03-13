@@ -313,7 +313,7 @@ contract('GDPCrowdsale', (accounts) => {
     });
 
     it('can\'t buy tokens after ICO finishes', async () => {
-      let stageCount = await crowdsale.stagesCount.call();
+      let stageCount = (await crowdsale.stagesCount.call()).toNumber();
       await IncreaseTime.increaseTimeWith(IncreaseTime.duration.weeks(stageCount));
 
       await asserts.throws(crowdsale.sendTransaction({
