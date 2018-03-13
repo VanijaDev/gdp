@@ -221,7 +221,7 @@ contract('GDPCrowdsale', (accounts) => {
       assert.equal(stage3_start_updated, startTimesUpdated[3], 'stage 3 was not updated properly');
     });
 
-    it('should validate finish time apdate', async () => {
+    it('should validate finish time update', async () => {
       let stagesCount = (await crowdsale.stagesCount.call()).toNumber();
       let currentFinishTime = (await crowdsale.endTimes.call(stagesCount - 1)).toNumber();
 
