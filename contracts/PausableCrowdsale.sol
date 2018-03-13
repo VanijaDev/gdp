@@ -14,7 +14,7 @@ contract PausableCrowdsale is Ownable {
     event CrowdsalePaused();
     event CrowdsaleRestored();
 
-    modifier isRunning() {
+    modifier isNotPaused() {
         require(!isPaused);
         _;
     }

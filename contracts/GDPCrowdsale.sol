@@ -62,7 +62,7 @@ contract GDPCrowdsale is PausableCrowdsale {
   }
 
   // low level token purchase function
-  function buyTokens(address beneficiary) isRunning public payable {
+  function buyTokens(address beneficiary) isNotPaused public payable {
     require(beneficiary != address(0));
     require(validPurchase());
 
@@ -82,7 +82,7 @@ contract GDPCrowdsale is PausableCrowdsale {
   }
 
   //  owner is able to mint tokens manually
-  function manualMint(address beneficiary, uint256 _amount) onlyOwner isRunning public {
+  function manualMint(address beneficiary, uint256 _amount) onlyOwner isNotPaused public {
     token.mint(beneficiary, _amount);
     TokenPurchase(msg.sender, beneficiary, 0, _amount);
   }
