@@ -229,7 +229,7 @@ contract('GDPCrowdsale', (accounts) => {
       await crowdsale.updateCrowdsaleFinishTime(updatedFinishTime);
 
       let finishTimeAfterUpdate = (await crowdsale.endTimes.call(stagesCount - 1)).toNumber();
-      assert.equal(finishTimeAfterUpdate, updatedFinishTime + 1, 'crowdsale finish time is wrond after update');
+      assert.equal(finishTimeAfterUpdate, updatedFinishTime, 'crowdsale finish time is wrond after update');
     });
   });
 
