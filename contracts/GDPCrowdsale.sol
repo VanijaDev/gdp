@@ -44,7 +44,7 @@ contract GDPCrowdsale is PausableCrowdsale {
   function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256[] _rates, address _wallet) public payable {
     require(msg.value > 0);
     require(_wallet != address(0));
-    require(validate_StartTimes_EndTimes_Rates(_startTimes, _endTimes, now, _rates));
+    require(validate_StartTimes_EndTimes_TimeNow_Rates(_startTimes, _endTimes, now, _rates));
 
     startTimes = _startTimes;
     endTimes = _endTimes;
@@ -87,6 +87,18 @@ contract GDPCrowdsale is PausableCrowdsale {
     TokenPurchase(msg.sender, beneficiary, 0, _amount);
   }
 
+  /**
+    * stages can be updated all at once
+   */
+  function updateCrowdsaleStages(uint256[] _startTimes, uint256[] _endTimes) public onlyOwner returns (bool) {
+    require(validate_StartTimes_EndTimes(_startTimes, _endTimes));
+
+    startTimes = _startTimes;
+    endTimes = _endTimes;
+
+    return true; 
+  }
+
   // @return true if crowdsale event has ended
   function hasEnded() public view returns (bool) {
     return now > endTimes[endTimes.length-1];
@@ -113,7 +125,29 @@ contract GDPCrowdsale is PausableCrowdsale {
     * PRIVATE
   */
 
-  function validate_StartTimes_EndTimes_Rates(uint256[] _startTimes, uint256[] _endTimes, uint _now, uint256[] _rates) private pure returns (bool) {
+  function validate_StartTimes_EndTimes_TimeNow_Rates(uint256[] _startTimes, uint256[] _endTimes, uint _now, uint256[] _rates) private pure returns (bool) {
+    //  crowdsale should start in future
+    if(_startTimes[0] < _now) {
+      return false;
+    }
+    
+    //  rate amount must be equal to stages
+    uint ratesLength = _rates.length;
+    if(ratesLength != _startTimes.length) {
+      return false;
+    }
+
+    for (uint i = 0; i < ratesLength; i ++) {
+      //  rates must be more 0
+      if(_rates[i] <= 0) {
+        return false;
+      }
+    }
+
+    return validate_StartTimes_EndTimes(_startTimes, _endTimes);
+  }
+
+  function validate_StartTimes_EndTimes(uint256[] _startTimes, uint256[] _endTimes) private pure returns (bool) {
     uint startTimesLength = _startTimes.length;
 
     //  length must be qual
@@ -121,19 +155,19 @@ contract GDPCrowdsale is PausableCrowdsale {
       return false;
     }
 
-    if(_rates.length != startTimesLength) {
-      return false;
-    }
-
-    //  startTime must be less, than now && less than endTime in each pair
+    //  startTime must be less, than endTime in each pair
     for (uint i = 0; i < startTimesLength; i ++) {
-      if(_startTimes[i] < _now || _startTimes[i] >= _endTimes[i]) {
+      
+      if(_startTimes[i] >= _endTimes[i]) {
         return false;
       }
 
-      //  rates must be more 0
-      if(_rates[i] <= 0) {
-        return false;
+      //  next stage should start on the next second after previous stage finishes. Stage timestamps are inclusive for rate calculations.
+      if(i+1 < startTimesLength) {
+        uint256 stagesDiff = _startTimes[i+1] - _endTimes[i];  // the difference between stages timestamps
+        if(stagesDiff != 1) {
+          return false;
+        } 
       }
     }
 

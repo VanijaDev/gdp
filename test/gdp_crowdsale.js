@@ -8,6 +8,8 @@ const LatestTime = require('../test/helpers/latestTime');
 const Chai = require('chai');
 const BigNumber = require('bignumber.js');
 
+//  TODO: start with should
+
 contract('GDPCrowdsale', (accounts) => {
 
   const ACC_1 = accounts[1];
@@ -197,7 +199,56 @@ contract('GDPCrowdsale', (accounts) => {
     });
   });
 
-  describe('IMPORTANT: this should be last tests - validate ICO stages', () => {
+  describe('should validate crowdsale stages updates', () => {
+    //  TODO: move to separate file (2 places): here and migration file
+    const RATES = [3300, 2200, 2000, 1800];
+    const STAGE_LENGTH = IncreaseTime.duration.days(2); // 2 days
+    const WALLET = web3.eth.accounts[9];
+
+    let startTimes = [];
+    let endTimes = [];
+
+    //  construct stages and rates
+    let latestTime = LatestTime.latestTime();
+
+    for (let i = 0; i < RATES.length; i++) {
+      if (i == 0) {
+        startTimes.push(latestTime + IncreaseTime.duration.days(2) + 1);
+        endTimes.push(latestTime + IncreaseTime.duration.days(2) + 1 + STAGE_LENGTH);
+      } else {
+        startTimes.push(endTimes[i - 1] + 1);
+        endTimes.push(startTimes[i] + STAGE_LENGTH);
+      }
+    }
+
+    it('should validate rate value after stages update', async () => {
+      let crowdsaleForStageUpdates = await GDPCrowdsale.new(startTimes, endTimes, RATES, WALLET, {
+        value: web3.toWei(0.1, 'ether')
+      });
+
+      //  create new times
+      let startTimesUpdated = [latestTime + 100, latestTime + 200, latestTime + 300, latestTime + 400];
+      let endTimesUpdated = [latestTime + 199, latestTime + 299, latestTime + 399, latestTime + 499];
+      await crowdsaleForStageUpdates.updateCrowdsaleStages(startTimesUpdated, endTimesUpdated);
+
+      //  1
+      let stage1_start_updated = new BigNumber(await crowdsaleForStageUpdates.startTimes.call(1)).toFixed();
+      assert.equal(stage1_start_updated, startTimesUpdated[1], 'stage 1 start was not updated properly');
+
+      //  2
+      let stage1_end_updated = new BigNumber(await crowdsaleForStageUpdates.endTimes.call(1)).toFixed();
+      assert.equal(stage1_end_updated, endTimesUpdated[1], 'stage 1 end was not updated properly');
+
+      //  3
+      let stage3_start_updated = new BigNumber(await crowdsaleForStageUpdates.startTimes.call(3)).toFixed();
+      assert.equal(stage3_start_updated, startTimesUpdated[3], 'stage 3 was not updated properly');
+    });
+  });
+
+  /**
+   * IMPORTANT: this should be last tests
+   */
+  describe('validate ICO stages', () => {
     it('can\'t buy tokens before ICO starts', async () => {
       //  TODO: move to separate file (2 places): here and migration file
       const RATES = [3300, 2200, 2000, 1800];
