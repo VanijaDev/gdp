@@ -99,9 +99,20 @@ contract GDPCrowdsale is PausableCrowdsale {
     return true; 
   }
 
+  function updateCrowdsaleFinishTime(uint256 _finishTime) public onlyOwner returns (bool) {
+    require(_finishTime > now);
+    
+    uint lastIdx = stagesCount() - 1;
+    require(_finishTime > startTimes[lastIdx]);
+
+    endTimes[lastIdx] = _finishTime;
+  }
+
   // @return true if crowdsale event has ended
   function hasEnded() public view returns (bool) {
-    return now > endTimes[endTimes.length-1];
+    uint lastIdx = stagesCount() - 1;
+
+    return now > endTimes[lastIdx];
   }
 
   // @return amount of ICO stages (including pre-ICO)
