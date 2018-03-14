@@ -12,8 +12,11 @@ const BigNumber = require('bignumber.js');
 
 contract('GDPCrowdsale', (accounts) => {
 
+  const OWNER = accounts[0];
+
   const ACC_1 = accounts[1];
   const ACC_1_WEI_SENT = new BigNumber(web3.toWei(1, 'ether')).toFixed();
+
   const ACC_2 = accounts[2];
   const ACC_2_WEI_SENT = new BigNumber(web3.toWei(2, 'ether')).toFixed();
 
@@ -92,18 +95,22 @@ contract('GDPCrowdsale', (accounts) => {
     });
   });
 
-  describe('Other', () => {
-    it('manualMint can be done by owner only', async () => {
+  describe('manual minting', () => {
+    it('should let owner mint manually', async () => {
       const TOKENS = new BigNumber(web3.toWei(3, 'ether')).toFixed();
-
-      await asserts.throws(crowdsale.manualMint(ACC_1, TOKENS, {
-        from: ACC_1
-      }));
 
       await asserts.doesNotThrow(crowdsale.manualMint(ACC_1, TOKENS));
 
       let balance = new BigNumber(await token.balanceOf(ACC_1)).toFixed();
       assert.equal(balance, TOKENS, 'wrong token amount after manual mint');
+    });
+
+    it('should not let not owner mint manually', async () => {
+      const TOKENS = new BigNumber(web3.toWei(3, 'ether')).toFixed();
+
+      await asserts.throws(crowdsale.manualMint(ACC_1, TOKENS, {
+        from: ACC_1
+      }));
     });
   });
 
@@ -199,6 +206,70 @@ contract('GDPCrowdsale', (accounts) => {
     });
   });
 
+  describe('whitelist', () => {
+    it('should show address is whitelisted', async () => {
+      assert.isTrue(await crowdsale.isWhitelisted.call(OWNER), 'owner should be whitelisted');
+      assert.isTrue(await crowdsale.isWhitelisted.call(ACC_1), 'ACC_1 was set to be whitelisted');
+    });
+
+    it('should show if address is not in whitelist', async () => {
+      assert.isFalse(await crowdsale.isWhitelisted.call(web3.eth.accounts[7]), 'account 7 should not be whitelisted');
+    });
+
+    it('should allow owner to add to whitelst', async () => {
+      const ACC_9 = web3.eth.accounts[8];
+
+      assert.isFalse(await crowdsale.isWhitelisted.call(ACC_9), 'ACC_9 should not be in whitelist');
+
+      await crowdsale.addToWhitelist([ACC_9]);
+      assert.isTrue(await crowdsale.isWhitelisted.call(ACC_9), 'ACC_9 should be whitelisted after adding to whitelist');
+    });
+
+    it('should allow owner to remove from whitelst', async () => {
+      assert.isTrue(await crowdsale.isWhitelisted.call(ACC_1), 'ACC_1 should be in whitelist');
+
+      await crowdsale.removeFromWhitelist([ACC_1]);
+      assert.isFalse(await crowdsale.isWhitelisted.call(ACC_1), 'ACC_1 should not be whitelisted after removing from whitelist');
+    });
+
+    it('should restrict not owner to modify whitelist', async () => {
+      await asserts.throws(crowdsale.addToWhitelist([ACC_1], {
+        from: ACC_1
+      }));
+      await asserts.throws(crowdsale.removeFromWhitelist([ACC_1], {
+        from: ACC_2
+      }));
+    });
+
+    it('should let whitelisted address to purchase', async () => {
+      const WEI = web3.toWei(3, 'ether');
+
+      await asserts.doesNotThrow(crowdsale.sendTransaction({
+        value: WEI
+      }), 'owner should be able to buy');
+
+      const ACC_9 = web3.eth.accounts[8];
+      await asserts.throws(crowdsale.sendTransaction({
+        from: ACC_9,
+        value: WEI
+      }), 'ACC_9 is not whitelisted, so should not be able to buy yet');
+      await crowdsale.addToWhitelist([ACC_9]);
+      await asserts.doesNotThrow(crowdsale.sendTransaction({
+        value: WEI
+      }), 'ACC_9 is whitelisted, so should be able to buy');
+    });
+
+    it('should restrict address not in whitelisted from purchase', async () => {
+      const WEI = web3.toWei(3, 'ether');
+      const ACC_8 = web3.eth.accounts[7];
+
+      await asserts.throws(crowdsale.sendTransaction({
+        from: ACC_8,
+        value: WEI
+      }));
+    });
+  });
+
   describe('should validate crowdsale stages updates', () => {
     it('should validate rate value after stages update', async () => {
       //  create new times
@@ -259,7 +330,7 @@ contract('GDPCrowdsale', (accounts) => {
         }
       }
 
-      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, RATES, WALLET, {
+      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, RATES, WALLET, [], {
         value: web3.toWei(0.1, 'ether')
       });
 
