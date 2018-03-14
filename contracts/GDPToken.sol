@@ -10,11 +10,8 @@ contract GDPToken is MintableToken {
 
   uint public totalSupplyLimit = 100000000 * uint(10)**decimals;
 
-  function GDPToken() public {
-  }
-
   /**
-    * Overriden
+    * OVERRIDEN
    */
 
    /**
