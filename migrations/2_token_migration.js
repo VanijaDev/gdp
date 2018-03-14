@@ -68,11 +68,13 @@ module.exports = function (deployer, network, accounts) {
     const start = times[0];
     const end = times[1];
 
+    const whitelist = [web3.eth.accounts[1], web3.eth.accounts[2]];
+
     // console.log('timestamp, RATES, STAGE_LENGTH, WALLET:   ', timestamp, RATES, STAGE_LENGTH, WALLET);
     // console.log('start', start);
     // console.log('end', end);
 
-    deployer.deploy(GDPCrowdsale, start, end, RATES, WALLET, {
+    deployer.deploy(GDPCrowdsale, start, end, RATES, WALLET, whitelist, {
         value: web3.toWei(0.1, 'ether')
     }).then(async () => {
         let ico = await GDPCrowdsale.deployed();

@@ -2,9 +2,10 @@ pragma solidity ^0.4.18;
 
 import './GDPToken.sol';
 import './PausableCrowdsale.sol';
+import './WhitelistedCrowdsale.sol';
 import '../node_modules/zeppelin-solidity/contracts/math/SafeMath.sol';
 
-contract GDPCrowdsale is PausableCrowdsale {
+contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale {
 
   using SafeMath for uint256;
   
@@ -41,7 +42,8 @@ contract GDPCrowdsale is PausableCrowdsale {
    // TODO: uptade to styleguides
   event TokenPurchase(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
 
-  function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256[] _rates, address _wallet) public payable {
+  function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256[] _rates, address _wallet, address[] _whitelist) 
+  WhitelistedCrowdsale(_whitelist) public payable {
     require(msg.value > 0);
     require(_wallet != address(0));
     require(validate_StartTimes_EndTimes_TimeNow_Rates(_startTimes, _endTimes, now, _rates));
@@ -62,7 +64,7 @@ contract GDPCrowdsale is PausableCrowdsale {
   }
 
   // low level token purchase function
-  function buyTokens(address beneficiary) isNotPaused public payable {
+  function buyTokens(address beneficiary) isNotPaused onlyWhitelisted(msg.sender) public payable {
     require(beneficiary != address(0));
     require(validPurchase());
 
@@ -82,7 +84,7 @@ contract GDPCrowdsale is PausableCrowdsale {
   }
 
   //  owner is able to mint tokens manually
-  function manualMint(address beneficiary, uint256 _amount) onlyOwner isNotPaused public {
+  function manualMint(address beneficiary, uint256 _amount) onlyOwner isNotPaused onlyWhitelisted(msg.sender) public {
     token.mint(beneficiary, _amount);
     TokenPurchase(msg.sender, beneficiary, 0, _amount);
   }
