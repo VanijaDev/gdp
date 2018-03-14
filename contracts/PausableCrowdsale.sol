@@ -11,14 +11,22 @@ contract PausableCrowdsale is Ownable {
 
     bool public isPaused;
 
+/**
+  * EVENTS
+ */
     event CrowdsalePaused();
     event CrowdsaleRestored();
-
+/**
+  * MODIFIERS
+ */
     modifier isNotPaused() {
         require(!isPaused);
         _;
     }
 
+/**
+  * PUBLIC
+ */
     function pauseCrowdsale() public onlyOwner {
         isPaused = true;
         CrowdsalePaused();
