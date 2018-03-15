@@ -16,17 +16,11 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale {
   uint256[] public startTimes;
   uint256[] public endTimes;
 
-  // address where funds are collected
-  address public wallet;
-
   /** 
     * how many token units a buyer gets per wei
     * @dev includes pre-ICO (0 element) and ICO stages
   */
   uint256[] public rates; // tokens per ether
-
-  // amount of raised money in wei
-  uint256 public weiRaised;
 
   /**
    *  EVENTS
@@ -80,7 +74,7 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale {
     token.mint(beneficiary, tokens);
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
-    forwardFunds(msg.value);
+    // forwardFunds(msg.value);
   }
 
   //  owner is able to mint tokens manually
@@ -216,8 +210,8 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale {
 
   // send ether to the fund collection wallet
   // override to create custom fund forwarding mechanisms
-  function forwardFunds(uint _funds) private {
-    wallet.transfer(_funds);
-  }
+  // function forwardFunds(uint _funds) private {
+  //   wallet.transfer(_funds);
+  // }
 
 }
