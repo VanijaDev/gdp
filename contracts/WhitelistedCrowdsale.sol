@@ -3,13 +3,13 @@ pragma solidity ^0.4.18;
 import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
 
 contract WhitelistedCrowdsale is Ownable {
-  mapping (address => bool) public allowedAddresses;
+  mapping (address => bool) public whitelist;
 
 /**
   * MODIFIERS
  */
   modifier onlyWhitelisted(address _address) {
-    require(allowedAddresses[_address]);
+    require(whitelist[_address]);
     _;
   }
 
@@ -22,11 +22,11 @@ contract WhitelistedCrowdsale is Ownable {
     //  loop through list
     for (uint i = 0; i < allowedLength; i++) {
       address addr = _allowedAddresses[i];
-      allowedAddresses[addr] = true;
+      whitelist[addr] = true;
     }
 
     //  add msg.sender
-    allowedAddresses[msg.sender] = true;
+    whitelist[msg.sender] = true;
   }
 
   function addToWhitelist(address[] _addresses) public onlyOwner {
@@ -34,7 +34,7 @@ contract WhitelistedCrowdsale is Ownable {
 
     for (uint i = 0; i < addressLength; i++) {
       address addr = _addresses[i];
-      allowedAddresses[addr] = true;
+      whitelist[addr] = true;
     }
   }
 
@@ -43,11 +43,11 @@ contract WhitelistedCrowdsale is Ownable {
 
     for (uint i = 0; i < addressLength; i++) {
       address addr = _addresses[i];
-      allowedAddresses[addr] = false;
+      whitelist[addr] = false;
     }
   }
 
   function isWhitelisted(address _address) public view returns (bool) {
-    return allowedAddresses[_address];
+    return whitelist[_address];
   }
 }
