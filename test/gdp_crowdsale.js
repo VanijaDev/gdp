@@ -111,6 +111,26 @@ contract('GDPCrowdsale', (accounts) => {
         from: ACC_1
       }));
     });
+
+    it('should not mint more than limit', async () => {
+      const MaxAmount = 100000000;
+      const FirstMintAmount = 99000000;
+      const DiffMintAmount = 1000000;
+      let Acc_1 = accounts[1];
+      let decimals = await token.decimals.call();
+
+      await crowdsale.manualMint(Acc_1, web3.toWei(FirstMintAmount, "ether"));
+
+      const CorrectBalance_FirstMintAmount = FirstMintAmount * 10 ** decimals;
+      assert.equal((await token.balanceOf.call(Acc_1)).toNumber(), CorrectBalance_FirstMintAmount, 'wrong balance after FirstMintAmount');
+
+      await asserts.throws(crowdsale.manualMint(Acc_1, web3.toWei(FirstMintAmount, "ether")), 'mint should fail bacause more than limit');
+      await asserts.doesNotThrow(crowdsale.manualMint(Acc_1, web3.toWei(DiffMintAmount, "ether")), 'should be successfully minted');
+
+      const CorrectBalance_LastMintAmount = MaxAmount * 10 ** decimals;
+      assert.equal((await token.balanceOf.call(Acc_1)).toNumber(), CorrectBalance_LastMintAmount, 'wrong balance after last mint');
+
+    });
   });
 
   describe('validate purchase', () => {
