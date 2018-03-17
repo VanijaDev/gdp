@@ -57,6 +57,7 @@ module.exports = function (deployer, network, accounts) {
     const RATES = [3000, 2200, 2000, 1800];
     const STAGE_LENGTH = IncreaseTime.duration.days(2);
     const WALLET = accounts[0];
+    const SOFT_CAP = web3.toWei(1000, 'ether');
 
     let timestamp = 00000000000; //  IMPORTANT: update this value
     if (network != 'ropsten') {
@@ -74,7 +75,7 @@ module.exports = function (deployer, network, accounts) {
     // console.log('start', start);
     // console.log('end', end);
 
-    deployer.deploy(GDPCrowdsale, start, end, RATES, WALLET, whitelist, {
+    deployer.deploy(GDPCrowdsale, start, end, RATES, whitelist, WALLET, SOFT_CAP, {
         value: web3.toWei(0.1, 'ether')
     }).then(async () => {
         let ico = await GDPCrowdsale.deployed();

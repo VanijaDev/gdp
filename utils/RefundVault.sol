@@ -24,7 +24,7 @@ contract RefundVault is Ownable {
   event Refunded(address indexed beneficiary, uint256 weiAmount);
 
   /**
-   * @param _wallet Vault address used to store funds while a crowdsale is in progress
+   * @param _wallet Vault address
    */
   function RefundVault(address _wallet) public {
     require(_wallet != address(0));
@@ -62,5 +62,9 @@ contract RefundVault is Ownable {
     deposited[investor] = 0;
     investor.transfer(depositedValue);
     Refunded(investor, depositedValue);
+  }
+
+  function isActive() public view returns (bool) {
+    return state == State.Active;
   }
 }

@@ -1,5 +1,6 @@
 const GDPToken = artifacts.require('./GDPToken.sol');
 const GDPCrowdsale = artifacts.require('./GDPCrowdsale.sol');
+// const RefundVault = artifacts.require('./utils/RefundVault.sol');  //  TODO: not needed 
 
 const Asserts = require('./helpers/asserts');
 const Reverter = require('./helpers/reverter');
@@ -51,11 +52,6 @@ contract('GDPCrowdsale', (accounts) => {
       assert.equal(await token.totalSupplyLimit.call(), TOKEN_TOTAL_SUPPLY_LIMIT, 'wrong total supply limit');
     });
 
-    it('validate stagesCount value', async () => {
-      let stages = await crowdsale.stagesCount.call();
-      assert.equal(stages, 4, 'wrong stagesCount. Be sure to check migration file.');
-    });
-
     it('pause state', async () => {
       assert.isFalse(await crowdsale.isPaused.call(), 'should not be paused at th beginning');
     });
@@ -68,16 +64,19 @@ contract('GDPCrowdsale', (accounts) => {
       }), 'should fail, only owner can pause');
 
       asserts.doesNotThrow(crowdsale.pauseCrowdsale.call(), 'owner should be able to pause');
-      //  TODO: test logs
     });
 
     it('owner can pause and run again', async () => {
       assert.isFalse(await crowdsale.isPaused.call(), 'should not be paused before test');
 
-      await crowdsale.pauseCrowdsale();
+      let pauseTx = await crowdsale.pauseCrowdsale();
+      let pauseLogs = pauseTx.logs;
+      assert.equal(pauseLogs[0].event, 'CrowdsalePaused', 'wrong event, when crowdsale paused');
       assert.isTrue(await crowdsale.isPaused.call(), 'should be paused after owner paused');
 
-      await crowdsale.restoreCrowdsale();
+      let restoreTx = await crowdsale.restoreCrowdsale();
+      let RestoreLogs = restoreTx.logs;
+      assert.equal(RestoreLogs[0].event, 'CrowdsaleRestored', 'wrong event, when crowdsale restored');
       assert.isFalse(await crowdsale.isPaused.call(), 'should run after owner run');
     });
 
@@ -88,10 +87,10 @@ contract('GDPCrowdsale', (accounts) => {
       await asserts.throws(crowdsale.sendTransaction({
         from: ACC_1,
         value: ACC_1_WEI_SENT
-      }));
+      }), 'purchase can not be performed, while crowdsale is paused');
 
       //  manual mint
-      await asserts.throws(crowdsale.manualMint(0x123, 111), 'manual mint can not be performed, while crowdsale is paused.');
+      await asserts.throws(crowdsale.manualMint(0x123, 111), 'manual mint can not be performed, while crowdsale is paused');
     });
   });
 
@@ -116,7 +115,7 @@ contract('GDPCrowdsale', (accounts) => {
 
   describe('validate purchase', () => {
     it('validate weiRaised value', async () => {
-      await IncreaseTime.increaseTimeWith(IncreaseTime.duration.minutes(1));
+      // await IncreaseTime.increaseTimeWith(IncreaseTime.duration.minutes(1));
 
       //  ACC_1
       await crowdsale.sendTransaction({
@@ -139,36 +138,8 @@ contract('GDPCrowdsale', (accounts) => {
       assert.equal(weiRaisedResult, correctWeiRaised, 'wrong weiRaised amount after ACC_2 purchase');
     });
 
-
-    it('validate wallet receives correct ETH amount', async () => {
-      await IncreaseTime.increaseTimeWith(IncreaseTime.duration.minutes(1));
-      let wallet = await crowdsale.wallet.call();
-
-      let walletFundsBefore = (web3.eth.getBalance(wallet)).toNumber();
-
-      //  1
-      await crowdsale.sendTransaction({
-        from: ACC_1,
-        value: ACC_1_WEI_SENT
-      });
-
-      let walletFundsAfter_Acc1 = (web3.eth.getBalance(wallet)).toNumber();
-      let diff = walletFundsAfter_Acc1 - walletFundsBefore;
-      assert.equal(ACC_1_WEI_SENT, diff, 'wrong funds in wallet after ACC_1 bought tokens');
-
-      //  2
-      await crowdsale.sendTransaction({
-        from: ACC_2,
-        value: ACC_2_WEI_SENT
-      });
-
-      let walletFundsAfter_Acc2 = (web3.eth.getBalance(wallet)).toNumber();
-      diff = walletFundsAfter_Acc2 - walletFundsAfter_Acc1;
-      assert.equal(ACC_2_WEI_SENT, diff, 'wrong funds in wallet after ACC_2 bought tokens');
-    });
-
     it('validate token amount bought for eth', async () => {
-      await IncreaseTime.increaseTimeWith(IncreaseTime.duration.minutes(1));
+      // await IncreaseTime.increaseTimeWith(IncreaseTime.duration.minutes(1));
 
       //  1
       await crowdsale.sendTransaction({
@@ -203,6 +174,42 @@ contract('GDPCrowdsale', (accounts) => {
       tokens = (await token.balanceOf.call(ACC_2)).toNumber();
       assert.equal(tokens, tokensCorrect, 'wrong token amount for ACC_2 after purchase');
 
+    });
+  });
+
+  describe('vault', () => {
+    it('validate vault receives correct ETH amount', async () => {
+      // await IncreaseTime.increaseTimeWith(IncreaseTime.duration.minutes(1));
+
+      let vaultAddr = await crowdsale.vault.call();
+      let vaultFundsBefore = (web3.eth.getBalance(vaultAddr)).toNumber();
+
+      //  1
+      await crowdsale.sendTransaction({
+        from: ACC_1,
+        value: ACC_1_WEI_SENT
+      });
+
+      let vaultFundsAfter_Acc1 = (web3.eth.getBalance(vaultAddr)).toNumber();
+      let diff = vaultFundsAfter_Acc1 - vaultFundsBefore;
+      assert.equal(ACC_1_WEI_SENT, diff, 'wrong funds in vault after ACC_1 bought tokens');
+
+      //  2
+      await crowdsale.sendTransaction({
+        from: ACC_2,
+        value: ACC_2_WEI_SENT
+      });
+
+      let vaultFundsAfter_Acc2 = (web3.eth.getBalance(vaultAddr)).toNumber();
+      diff = vaultFundsAfter_Acc2 - vaultFundsAfter_Acc1;
+      assert.equal(ACC_2_WEI_SENT, diff, 'wrong funds in vault after ACC_2 bought tokens');
+    });
+
+    it('validate correct value in deposits for each investor', async () => {
+      await crowdsale.sendTransaction({
+        from: ACC_1,
+        value: ACC_1_WEI_SENT
+      });
     });
   });
 
@@ -313,6 +320,7 @@ contract('GDPCrowdsale', (accounts) => {
       const RATES = [3300, 2200, 2000, 1800];
       const STAGE_LENGTH = IncreaseTime.duration.days(2); // 2 days
       const WALLET = web3.eth.accounts[9];
+      const SOFT_CAP = web3.toWei(1000, 'ether');
 
       let startTimes = [];
       let endTimes = [];
@@ -330,7 +338,7 @@ contract('GDPCrowdsale', (accounts) => {
         }
       }
 
-      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, RATES, WALLET, [], {
+      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, RATES, [], WALLET, SOFT_CAP, {
         value: web3.toWei(0.1, 'ether')
       });
 
@@ -341,7 +349,7 @@ contract('GDPCrowdsale', (accounts) => {
     });
 
     it('validate first stage', async () => {
-      await IncreaseTime.increaseTimeWith(IncreaseTime.duration.minutes(1));
+      // await IncreaseTime.increaseTimeWith(IncreaseTime.duration.minutes(1));
 
       await crowdsale.sendTransaction({
         from: ACC_1,
