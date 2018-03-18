@@ -322,8 +322,8 @@ contract('GDPCrowdsale', (accounts) => {
     });
   });
 
-  describe('should validate crowdsale stages updates', () => {
-    it('should validate rate value after stages update', async () => {
+  describe('stage timing update', () => {
+    it('should validate start & end times update', async () => {
       //  create new times
       let latestTime = LatestTime.latestTime();
       let startTimesUpdated = [latestTime + 100, latestTime + 200, latestTime + 300, latestTime + 400];
@@ -353,6 +353,46 @@ contract('GDPCrowdsale', (accounts) => {
 
       let finishTimeAfterUpdate = (await crowdsale.endTimes.call(stagesCount - 1)).toNumber();
       assert.equal(finishTimeAfterUpdate, updatedFinishTime, 'crowdsale finish time is wrond after update');
+    });
+  });
+
+  describe('bonus update', () => {
+    it('validate bonus update', async () => {
+      const BONUS_0 = 80;
+      const BONUS_1 = 10;
+      const BONUS_2 = 5;
+
+      await crowdsale.updateStageBonuses([BONUS_0, BONUS_1, BONUS_2]);
+
+      let bonus0 = (await crowdsale.stageBonus.call(0)).toNumber();
+      await assert.equal(BONUS_0, bonus0, 'bonus for stage 0 wrong after update');
+
+      let bonus1 = (await crowdsale.stageBonus.call(1)).toNumber();
+      await assert.equal(BONUS_1, bonus1, 'bonus for stage 2 wrong after update');
+
+      let bonus2 = (await crowdsale.stageBonus.call(2)).toNumber();
+      await assert.equal(BONUS_2, bonus2, 'bonus for stage 2 wrong after update');
+    });
+
+    it('validate correct token amount on purchase', async () => {
+      const BONUS_0 = 80;
+      const BONUS_1 = 10;
+      const BONUS_2 = 5;
+
+      await crowdsale.updateStageBonuses([BONUS_0, BONUS_1, BONUS_2]);
+
+      await crowdsale.sendTransaction({
+        from: ACC_1,
+        value: ACC_1_WEI_SENT
+      });
+
+      let basicRate = (await crowdsale.basicRate.call()).toNumber();
+      let basicAmount = ACC_1_WEI_SENT * basicRate;
+      let bonus = (await crowdsale.currentStageBonus.call()).toNumber();
+      let bonusAmount = basicAmount * bonus / 100;
+      let tokensCorrect = basicAmount + bonusAmount;
+      let tokens = (await token.balanceOf.call(ACC_1)).toNumber();
+      assert.equal(tokens, tokensCorrect, 'wrong token amount bought during first stage after bonus update');
     });
   });
 

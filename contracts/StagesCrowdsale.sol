@@ -17,7 +17,7 @@ contract StagesCrowdsale is Ownable {
     * how many token units a buyer gets per ETH
     * @dev includes pre-ICO (0 element) and ICO stages
   */
-  uint256[] private stageBonus;
+  uint256[] public stageBonus;
 
   /**
     * PUBLIC
@@ -52,6 +52,10 @@ contract StagesCrowdsale is Ownable {
     require(_finishTime > startTimes[lastIdx]);
 
     endTimes[lastIdx] = _finishTime;
+  }
+
+  function updateStageBonuses(uint256[] _stageBonus) public onlyOwner {
+    stageBonus = _stageBonus;
   }
 
   // @return true if crowdsale event has ended
