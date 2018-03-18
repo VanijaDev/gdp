@@ -27,8 +27,8 @@ contract RefundableCrowdsale is StagesCrowdsale {
    * @dev Constructor, creates RefundVault. 
    * @param _goal Funding goal
    */
-  function RefundableCrowdsale(address _wallet, uint256 _goal, uint256[] _startTimes, uint256[] _endTimes, uint256[] _rates)
-    StagesCrowdsale(_startTimes, _endTimes, _rates) public {
+  function RefundableCrowdsale(address _wallet, uint256 _goal, uint256[] _startTimes, uint256[] _endTimes, uint256 _basicRate, uint256[] _stageBonus)
+    StagesCrowdsale(_startTimes, _endTimes, _basicRate, _stageBonus) public {
       require(_goal > 0);
       require(_wallet != address(0));
 

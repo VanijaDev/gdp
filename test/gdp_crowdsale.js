@@ -162,8 +162,11 @@ contract('GDPCrowdsale', (accounts) => {
         value: ACC_1_WEI_SENT
       });
 
-      let currentRate = (await crowdsale.currentRate.call()).toNumber();
-      let tokensCorrect = ACC_1_WEI_SENT * currentRate;
+      let basicRate = (await crowdsale.basicRate.call()).toNumber();
+      let basicAmount = ACC_1_WEI_SENT * basicRate;
+      let bonus = (await crowdsale.currentStageBonus.call()).toNumber();
+      let bonusAmount = basicAmount * bonus / 100;
+      let tokensCorrect = basicAmount + bonusAmount;
       let tokens = (await token.balanceOf.call(ACC_1)).toNumber();
       assert.equal(tokens, tokensCorrect, 'wrong token amount for ACC_1 after purchase');
 
@@ -173,8 +176,7 @@ contract('GDPCrowdsale', (accounts) => {
         value: ACC_1_WEI_SENT
       });
 
-      currentRate = (await crowdsale.currentRate.call()).toNumber();
-      tokensCorrect = ACC_1_WEI_SENT * currentRate * 2;
+      tokensCorrect = (tokensCorrect * 2);
       tokens = (await token.balanceOf.call(ACC_1)).toNumber();
       assert.equal(tokens, tokensCorrect, 'wrong token amount for ACC_1 after second purchase');
 
@@ -184,8 +186,9 @@ contract('GDPCrowdsale', (accounts) => {
         value: ACC_2_WEI_SENT
       });
 
-      currentRate = (await crowdsale.currentRate.call()).toNumber();
-      tokensCorrect = ACC_2_WEI_SENT * currentRate;
+      basicAmount = ACC_2_WEI_SENT * basicRate;
+      bonusAmount = basicAmount * bonus / 100;
+      tokensCorrect = basicAmount + bonusAmount;
       tokens = (await token.balanceOf.call(ACC_2)).toNumber();
       assert.equal(tokens, tokensCorrect, 'wrong token amount for ACC_2 after purchase');
 
@@ -359,28 +362,18 @@ contract('GDPCrowdsale', (accounts) => {
   describe('validate ICO stages', () => {
     it('can\'t buy tokens before ICO starts', async () => {
       //  TODO: move to separate file (2 places): here and migration file
-      const RATES = [3300, 2200, 2000, 1800];
-      const STAGE_LENGTH = IncreaseTime.duration.days(2); // 2 days
-      const WALLET = web3.eth.accounts[9];
+      const BASIC_RATE = 1800;
+      const BONUSES = [40]; //  in %
+      const STAGE_LENGTH = IncreaseTime.duration.days(2);
+      const WALLET = accounts[0];
       const SOFT_CAP = web3.toWei(1000, 'ether');
 
-      let startTimes = [];
-      let endTimes = [];
-
-      //  construct stages and rates
       let latestTime = LatestTime.latestTime();
 
-      for (let i = 0; i < RATES.length; i++) {
-        if (i == 0) {
-          startTimes.push(latestTime + IncreaseTime.duration.days(2) + 1);
-          endTimes.push(latestTime + IncreaseTime.duration.days(2) + 1 + STAGE_LENGTH);
-        } else {
-          startTimes.push(endTimes[i - 1] + 1);
-          endTimes.push(startTimes[i] + STAGE_LENGTH);
-        }
-      }
+      let startTimes = [latestTime + STAGE_LENGTH];
+      let endTimes = [startTimes[0] + STAGE_LENGTH];
 
-      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, RATES, [], WALLET, SOFT_CAP, {
+      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [], WALLET, SOFT_CAP, {
         value: web3.toWei(0.1, 'ether')
       });
       await localCrowdsale.createTokenContract();
@@ -391,15 +384,22 @@ contract('GDPCrowdsale', (accounts) => {
     });
 
     it('validate first stage', async () => {
+      //  1
       await crowdsale.sendTransaction({
         from: ACC_1,
         value: ACC_1_WEI_SENT
       });
+
+      let basicRate = (await crowdsale.basicRate.call()).toNumber();
+      let basicAmount = ACC_1_WEI_SENT * basicRate;
+      let bonus = (await crowdsale.currentStageBonus.call()).toNumber();
+      let bonusAmount = basicAmount * bonus / 100;
+      let tokensCorrect = basicAmount + bonusAmount;
       let tokens = (await token.balanceOf.call(ACC_1)).toNumber();
-      const correctTokens = ACC_1_WEI_SENT * (await crowdsale.rates.call(0));
-      assert.equal(tokens, correctTokens, 'wrong token amount bought during first stage');
+      assert.equal(tokens, tokensCorrect, 'wrong token amount bought during first stage');
       assert.equal((await crowdsale.weiRaised.call()).toNumber(), ACC_1_WEI_SENT, 'wrong weiRaised amount after ACC_1 purchase');
 
+      //  2
       await crowdsale.sendTransaction({
         from: ACC_2,
         value: ACC_2_WEI_SENT
@@ -424,10 +424,14 @@ contract('GDPCrowdsale', (accounts) => {
         value: ACC_1_WEI_SENT
       });
 
+      let basicRate = (await crowdsale.basicRate.call()).toNumber();
+      let basicAmount = ACC_1_WEI_SENT * basicRate;
+      let bonus = (await crowdsale.currentStageBonus.call()).toNumber();
+      let bonusAmount = basicAmount * bonus / 100;
+      let tokensCorrect = basicAmount + bonusAmount;
       let tokens = (await token.balanceOf.call(ACC_1)).toNumber();
-      let rate = await crowdsale.rates.call(stageIdx);
-      const correctTokens = ACC_1_WEI_SENT * rate;
-      assert.equal(tokens, correctTokens, 'wrong token amount bought during first stage');
+
+      assert.equal(tokens, tokensCorrect, 'wrong token amount bought during first stage');
       assert.equal((await crowdsale.weiRaised.call()).toNumber(), ACC_1_WEI_SENT, 'wrong weiRaised amount after ACC_1 purchase');
     });
 
@@ -475,18 +479,18 @@ contract('GDPCrowdsale', (accounts) => {
 
   describe('goal reached - new crowdsale for test', () => {
     it('should validate goal is being reached', async () => {
-      const RATES = [3300];
-      const WALLET = web3.eth.accounts[9];
-      const STAGE_LENGTH = IncreaseTime.duration.days(2); // 2 days
+      const BASIC_RATE = 1800;
+      const BONUSES = [40]; //  in %
+      const STAGE_LENGTH = IncreaseTime.duration.days(2);
+      const WALLET = accounts[0];
       const SOFT_CAP = web3.toWei(10, 'ether');
 
-      //  construct stages and rates
       let latestTime = LatestTime.latestTime();
 
       let startTimes = [latestTime + 11111111];
       let endTimes = [startTimes[0] + STAGE_LENGTH];
 
-      let localCrowdsale1 = await GDPCrowdsale.new(startTimes, endTimes, RATES, [ACC_1], WALLET, SOFT_CAP, {
+      let localCrowdsale1 = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [ACC_1], WALLET, SOFT_CAP, {
         value: web3.toWei(0.1, 'ether')
       });
       await localCrowdsale1.createTokenContract();

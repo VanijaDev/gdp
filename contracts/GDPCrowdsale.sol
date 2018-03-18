@@ -26,9 +26,9 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, RefundableCrow
    // TODO: uptade to styleguides
   event TokenPurchase(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
 
-  function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256[] _rates, address[] _whitelist, address _wallet, uint256 _goal) 
+  function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256 _basicRate, uint256[] _stageBonus, address[] _whitelist, address _wallet, uint256 _goal) 
     WhitelistedCrowdsale(_whitelist)
-    RefundableCrowdsale(_wallet, _goal, _startTimes, _endTimes, _rates) public payable {
+    RefundableCrowdsale(_wallet, _goal, _startTimes, _endTimes, _basicRate, _stageBonus) public payable {
       require(msg.value > 0);
   }
 
@@ -46,14 +46,10 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, RefundableCrow
     require(beneficiary != address(0));
     require(validPurchase());
 
-    uint256 rate = currentRate();
-    require(rate > 0);
-
-    uint256 weiAmount = msg.value;
-    uint256 tokens = getTokenAmount(weiAmount, rate);
+    uint256 tokens = getTokenAmount(msg.value);
 
     token.mint(beneficiary, tokens);
-    TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
+    TokenPurchase(msg.sender, beneficiary, msg.value, tokens);
 
     forwardFunds();
   }

@@ -54,7 +54,8 @@ let GDPCrowdsale = artifacts.require("./GDPCrowdsale.sol");
 let IncreaseTime = require('../test/helpers/increaseTime');
 
 module.exports = function (deployer, network, accounts) {
-    const RATES = [3000, 2200, 2000, 1800];
+    const BASIC_RATE = 1800;
+    const BONUSES = [40, 30, 20, 0]; //  in %
     const STAGE_LENGTH = IncreaseTime.duration.days(2);
     const WALLET = accounts[0];
     const SOFT_CAP = web3.toWei(1000, 'ether');
@@ -64,18 +65,18 @@ module.exports = function (deployer, network, accounts) {
         timestamp = web3.eth.getBlock('latest').timestamp;
     }
 
-    const times = calculateStartEndTimes(timestamp, RATES, STAGE_LENGTH);
+    const times = calculateStartEndTimes(timestamp, BONUSES, STAGE_LENGTH);
 
     const start = times[0];
     const end = times[1];
 
     const whitelist = [web3.eth.accounts[1], web3.eth.accounts[2]];
 
-    // console.log('timestamp, RATES, STAGE_LENGTH, WALLET:   ', timestamp, RATES, STAGE_LENGTH, WALLET);
+    // console.log('timestamp, BASIC_RATE, BONUSES, STAGE_LENGTH, WALLET:   ', timestamp, BASIC_RATE, BONUSES, STAGE_LENGTH, WALLET);
     // console.log('start', start);
     // console.log('end', end);
 
-    deployer.deploy(GDPCrowdsale, start, end, RATES, whitelist, WALLET, SOFT_CAP, {
+    deployer.deploy(GDPCrowdsale, start, end, BASIC_RATE, BONUSES, whitelist, WALLET, SOFT_CAP, {
         value: web3.toWei(0.1, 'ether')
     }).then(async () => {
         let ico = await GDPCrowdsale.deployed();
@@ -87,14 +88,14 @@ module.exports = function (deployer, network, accounts) {
  * next stage should start on the next second, when previous stage has ended
  * 
  * @param {uint} latestTime - time of the current block
- * @param {[uint]} rates - rates for stages
+ * @param {[uint]} bonuses - bonuses for stages
  * @param {uint} stageLength - lenght of each stage
  */
-function calculateStartEndTimes(latestTime, rates, stageLength) {
+function calculateStartEndTimes(latestTime, bonuses, stageLength) {
     let startTimes = [];
     let endTimes = [];
 
-    for (let i = 0; i < rates.length; i++) {
+    for (let i = 0; i < bonuses.length; i++) {
         if (i == 0) {
             startTimes.push(latestTime + 1);
             endTimes.push(latestTime + 1 + stageLength);

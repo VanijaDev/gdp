@@ -11,21 +11,25 @@ contract StagesCrowdsale is Ownable {
   uint256[] public startTimes;
   uint256[] public endTimes;
 
+  uint256 public basicRate;
+
   /** 
     * how many token units a buyer gets per ETH
     * @dev includes pre-ICO (0 element) and ICO stages
   */
-  uint256[] public rates;
+  uint256[] private stageBonus;
 
   /**
     * PUBLIC
   */
-  function StagesCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256[] _rates) public {
-    require(validate_StartTimes_EndTimes_TimeNow_Rates(_startTimes, _endTimes, now, _rates));
+  function StagesCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256 _basicRate, uint256[] _stageBonus) public {
+    require(validate_StartTimes_EndTimes_TimeNow_StageBonus(_startTimes, _endTimes, now, _stageBonus));
+    require(_basicRate > 0);
 
     startTimes = _startTimes;
     endTimes = _endTimes;
-    rates = _rates;
+    basicRate = _basicRate;
+    stageBonus = _stageBonus;
   }
 
 
@@ -59,19 +63,17 @@ contract StagesCrowdsale is Ownable {
 
   // @return amount of ICO stages (including pre-ICO)
   function stagesCount() public view returns (uint) {
-    return rates.length;
+    return stageBonus.length;
   }
 
-  // @return current rate
-  function currentRate() public view returns (uint) {
+  // @return current stageBonus
+  function currentStageBonus() public view returns (uint256) {
     bool stageFound;
     uint256 stageIdx;
     (stageFound, stageIdx) = currentCrowdsaleStage(now, startTimes, endTimes);
+    require(stageFound);
     
-    if(!stageFound) {
-      return 0;
-    }
-    return rates[stageIdx];
+    return stageBonus[stageIdx];
   }
 
   /**
@@ -83,31 +85,28 @@ contract StagesCrowdsale is Ownable {
     return withinCrowdsalePeriod;
   }
 
-  function getTokenAmount(uint256 _weiAmount, uint256 _rate) internal pure returns(uint256) {
-    return _weiAmount.mul(_rate);
+  function getTokenAmount(uint256 _weiAmount) internal view returns(uint256) {
+    uint256 basicAmount = _weiAmount.mul(basicRate);
+    uint256 bonus = currentStageBonus();
+    uint256 bonusAmount = basicAmount.mul(bonus).div(100);
+    uint256 totalAmount = basicAmount + bonusAmount;
+
+    return totalAmount;
   }
 
   /**
     * PRIVATE
   */
 
-  function validate_StartTimes_EndTimes_TimeNow_Rates(uint256[] _startTimes, uint256[] _endTimes, uint _now, uint256[] _rates) private pure returns (bool) {
+  function validate_StartTimes_EndTimes_TimeNow_StageBonus(uint256[] _startTimes, uint256[] _endTimes, uint _now, uint256[] _stageBonus) private pure returns (bool) {
     //  crowdsale should start in future
     if(_startTimes[0] < _now) {
       return false;
     }
     
-    //  rate amount must be equal to stages
-    uint ratesLength = _rates.length;
-    if(ratesLength != _startTimes.length) {
+    //  stageBonus amount must be equal to stages
+    if(_stageBonus.length != _startTimes.length) {
       return false;
-    }
-
-    for (uint i = 0; i < ratesLength; i ++) {
-      //  rates must be more 0
-      if(_rates[i] <= 0) {
-        return false;
-      }
     }
 
     return validate_StartTimes_EndTimes(_startTimes, _endTimes);
@@ -128,7 +127,7 @@ contract StagesCrowdsale is Ownable {
         return false;
       }
 
-      //  next stage should start on the next second after previous stage finishes. Stage timestamps are inclusive for rate calculations.
+      //  next stage should start on the next second after previous stage finishes. Stage timestamps are inclusive for stageBonus calculations.
       if(i+1 < startTimesLength) {
         uint256 stagesDiff = _startTimes[i+1] - _endTimes[i];  // the difference between stages timestamps
         if(stagesDiff != 1) {
