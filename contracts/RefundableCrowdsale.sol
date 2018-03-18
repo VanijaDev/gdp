@@ -2,7 +2,7 @@ pragma solidity ^0.4.18;
 
 import '../utils/RefundVault.sol';
 import '../node_modules/zeppelin-solidity/contracts/math/SafeMath.sol';
-import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
+import './StagesCrowdsale.sol';
 
 
 /**
@@ -11,7 +11,7 @@ import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
  * the possibility of users getting a refund if goal is not met.
  * Uses a RefundVault as the crowdsale's vault.
  */
-contract RefundableCrowdsale is Ownable {
+contract RefundableCrowdsale is StagesCrowdsale {
   using SafeMath for uint256;
 
   // minimum amount of funds to be raised in weis
@@ -27,7 +27,8 @@ contract RefundableCrowdsale is Ownable {
    * @dev Constructor, creates RefundVault. 
    * @param _goal Funding goal
    */
-  function RefundableCrowdsale(address _wallet, uint256 _goal) public {
+  function RefundableCrowdsale(address _wallet, uint256 _goal, uint256[] _startTimes, uint256[] _endTimes, uint256[] _rates)
+    StagesCrowdsale(_startTimes, _endTimes, _rates) public {
       require(_goal > 0);
       require(_wallet != address(0));
 
@@ -40,10 +41,20 @@ contract RefundableCrowdsale is Ownable {
    * @dev Investors can claim refunds here if crowdsale is unsuccessful
    */
   function claimRefund() public {
-    require(!vault.isActive());
+    require(hasEnded());
     require(!goalReached());
 
     vault.refund(msg.sender);
+  }
+
+  /**
+   * @dev Transfer funds to wallet is ICO was successfull
+  */
+  function forwardFundsToWallet() public onlyOwner {
+    require(hasEnded());
+    require(goalReached());
+
+    vault.moveFundsToWallet();
   }
 
   /**
@@ -52,19 +63,6 @@ contract RefundableCrowdsale is Ownable {
    */
   function goalReached() public view returns (bool) {
     return weiRaised >= goal;
-  }
-
-  /**
-   * @dev Vault finalization task, called when owner calls finalize()
-   */
-  function finalize() internal onlyOwner {
-    require(vault.isActive());
-
-    if (goalReached()) {
-      vault.close();
-    } else {
-      vault.enableRefunds();
-    }
   }
 
   /**

@@ -3,18 +3,14 @@ pragma solidity ^0.4.18;
 import './GDPToken.sol';
 import './PausableCrowdsale.sol';
 import './WhitelistedCrowdsale.sol';
-import './StagesCrowdsale.sol';
 import './RefundableCrowdsale.sol';
 
-contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, StagesCrowdsale, RefundableCrowdsale {
+contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, RefundableCrowdsale {
 
   using SafeMath for uint256;
   
   // The token being sold
   GDPToken public token;
-
-  // address where funds are collected
-  address public wallet;
 
   /**
    *  EVENTS
@@ -32,12 +28,8 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, StagesCrowdsal
 
   function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256[] _rates, address[] _whitelist, address _wallet, uint256 _goal) 
     WhitelistedCrowdsale(_whitelist)
-    StagesCrowdsale(_startTimes, _endTimes, _rates)
-    RefundableCrowdsale(_wallet, _goal) public payable {
+    RefundableCrowdsale(_wallet, _goal, _startTimes, _endTimes, _rates) public payable {
       require(msg.value > 0);
-      require(_wallet != address(0));
-
-      wallet = _wallet;
   }
 
   /**
@@ -51,11 +43,6 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, StagesCrowdsal
 
   // low level token purchase function
   function buyTokens(address beneficiary) isNotPaused onlyWhitelisted(msg.sender) public payable {
-    if(hasEnded()) {
-      finalize();
-      return;
-    }
-
     require(beneficiary != address(0));
     require(validPurchase());
 
@@ -94,11 +81,5 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, StagesCrowdsal
 
     return withinCrowdsalePeriod && nonZeroPurchase;
   }
-
-  // send ether to the fund collection wallet
-  // override to create custom fund forwarding mechanisms
-  // function forwardFunds(uint _funds) private {
-  //   wallet.transfer(_funds);
-  // }
 
 }

@@ -1,6 +1,6 @@
 const GDPToken = artifacts.require('./GDPToken.sol');
 const GDPCrowdsale = artifacts.require('./GDPCrowdsale.sol');
-// const RefundVault = artifacts.require('./utils/RefundVault.sol');  //  TODO: not needed 
+const RefundVault = artifacts.require('./utils/RefundVault.sol');
 
 const Asserts = require('./helpers/asserts');
 const Reverter = require('./helpers/reverter');
@@ -129,14 +129,11 @@ contract('GDPCrowdsale', (accounts) => {
 
       const CorrectBalance_LastMintAmount = MaxAmount * 10 ** decimals;
       assert.equal((await token.balanceOf.call(Acc_1)).toNumber(), CorrectBalance_LastMintAmount, 'wrong balance after last mint');
-
     });
   });
 
   describe('validate purchase', () => {
     it('validate weiRaised value', async () => {
-      // await IncreaseTime.increaseTimeWith(IncreaseTime.duration.minutes(1));
-
       //  ACC_1
       await crowdsale.sendTransaction({
         from: ACC_1,
@@ -159,8 +156,6 @@ contract('GDPCrowdsale', (accounts) => {
     });
 
     it('validate token amount bought for eth', async () => {
-      // await IncreaseTime.increaseTimeWith(IncreaseTime.duration.minutes(1));
-
       //  1
       await crowdsale.sendTransaction({
         from: ACC_1,
@@ -199,8 +194,6 @@ contract('GDPCrowdsale', (accounts) => {
 
   describe('vault', () => {
     it('validate vault receives correct ETH amount', async () => {
-      // await IncreaseTime.increaseTimeWith(IncreaseTime.duration.minutes(1));
-
       let vaultAddr = await crowdsale.vault.call();
       let vaultFundsBefore = (web3.eth.getBalance(vaultAddr)).toNumber();
 
@@ -226,10 +219,39 @@ contract('GDPCrowdsale', (accounts) => {
     });
 
     it('validate correct value in deposits for each investor', async () => {
+      let vaultAddr = await crowdsale.vault.call();
+      let vault = await RefundVault.at(vaultAddr);
+
+      //  1
       await crowdsale.sendTransaction({
         from: ACC_1,
         value: ACC_1_WEI_SENT
       });
+
+      let vaultDepositAcc1 = new BigNumber(await vault.deposited.call(ACC_1)).toFixed();
+      assert.equal(vaultDepositAcc1, ACC_1_WEI_SENT, 'wrong ACC_1 deposit in vault after purchase');
+
+      //  2
+      await crowdsale.sendTransaction({
+        from: ACC_2,
+        value: ACC_2_WEI_SENT
+      });
+
+      let vaultDepositAcc2 = new BigNumber(await vault.deposited.call(ACC_2)).toFixed();
+      assert.equal(vaultDepositAcc2, ACC_2_WEI_SENT, 'wrong ACC_2 deposit in vault after purchase');
+
+      //  3
+      await crowdsale.sendTransaction({
+        from: ACC_1,
+        value: ACC_1_WEI_SENT
+      });
+
+      let vaultDepositAcc1_2 = new BigNumber(await vault.deposited.call(ACC_1)).toFixed();
+      assert.equal(vaultDepositAcc1_2, (ACC_1_WEI_SENT * 2), 'wrong ACC_1 deposit in vault after second purchase');
+
+      //  4
+      let vaultDepositAcc4 = new BigNumber(await vault.deposited.call(web3.eth.accounts[3])).toFixed();
+      assert.equal(vaultDepositAcc4, 0, 'wrong ACC_4 deposit in vault, should be 0');
     });
   });
 
@@ -361,16 +383,14 @@ contract('GDPCrowdsale', (accounts) => {
       let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, RATES, [], WALLET, SOFT_CAP, {
         value: web3.toWei(0.1, 'ether')
       });
+      await localCrowdsale.createTokenContract();
 
       await asserts.throws(localCrowdsale.sendTransaction({
-        from: ACC_1,
         value: ACC_1_WEI_SENT
       }), 'should not allow to buy before ICO has started');
     });
 
     it('validate first stage', async () => {
-      // await IncreaseTime.increaseTimeWith(IncreaseTime.duration.minutes(1));
-
       await crowdsale.sendTransaction({
         from: ACC_1,
         value: ACC_1_WEI_SENT
@@ -389,12 +409,12 @@ contract('GDPCrowdsale', (accounts) => {
       assert.equal(weiRaisedResult, correctWeiRaised, 'wrong weiRaised amount ACC_1 + ACC_2');
     });
 
-    it('IMPORTANT: should be last test - validate last stage', async () => {
+    it('validate last stage', async () => {
       let stageCount = await crowdsale.stagesCount.call();
       assert.isAtLeast(stageCount, 1, 'there should be at least 1 ICO stage');
 
       let stageIdx = stageCount - 1;
-      let startTime = await crowdsale.startTimes.call(stageIdx);
+      let startTime = (await crowdsale.startTimes.call(stageIdx)).toNumber();
       // console.log('now:   ', web3.eth.getBlock('latest').timestamp);
       await IncreaseTime.increaseTimeTo(startTime);
       // console.log('now 2:   ', web3.eth.getBlock('latest').timestamp);
@@ -411,15 +431,94 @@ contract('GDPCrowdsale', (accounts) => {
       assert.equal((await crowdsale.weiRaised.call()).toNumber(), ACC_1_WEI_SENT, 'wrong weiRaised amount after ACC_1 purchase');
     });
 
-    it('can\'t buy tokens after ICO finishes', async () => {
-      let stageCount = (await crowdsale.stagesCount.call()).toNumber();
-      await IncreaseTime.increaseTimeWith(IncreaseTime.duration.weeks(stageCount));
+    it('IMPORTANT: should be last test - should validate, crowdsale finish', async () => {
+      await crowdsale.sendTransaction({
+        from: ACC_1,
+        value: ACC_1_WEI_SENT
+      });
 
+      await IncreaseTime.increaseTimeWith(IncreaseTime.duration.days(10));
+
+      //  1
+      await asserts.throws(crowdsale.forwardFundsToWallet(), 'tokens can not be transfered to walled if ICO was unsuccessfull');
+
+      //  2
       await asserts.throws(crowdsale.sendTransaction({
         from: ACC_1,
         value: ACC_1_WEI_SENT
-      }), 'should not allow to buy after ICO has finished');
-    });
+      }), 'should not allow purchase after ICO finished');
 
+      //  3
+      let vaultAddr = await crowdsale.vault();
+      let vault = await RefundVault.at(vaultAddr);
+      assert.isTrue(await crowdsale.hasEnded.call(), 'crowdsale should be ended before check');
+      assert.isFalse(await crowdsale.goalReached.call(), 'goal should not be reached');
+
+      //  4
+      let acc1BalanceBefore = (await web3.eth.getBalance(ACC_1)).toNumber();
+      assert.equal(new BigNumber(await vault.deposited.call(ACC_1)).toFixed(), ACC_1_WEI_SENT, 'wrong vault deposit for ACC_1 before refund');
+
+      await crowdsale.claimRefund({
+        from: ACC_1
+      });
+      let acc1BalanceAfter = (await web3.eth.getBalance(ACC_1)).toNumber();
+      assert.isAbove(acc1BalanceAfter, acc1BalanceBefore, 'balance after refund must be more, then before');
+      assert.equal((await vault.deposited.call(ACC_1)).toNumber(), 0, 'wrong vault deposit for ACC_1 after refund');
+
+      //  5
+      await asserts.throws(crowdsale.claimRefund({
+        from: ACC_1
+      }), 'refund can not be claimed multiple times');
+
+    });
+  });
+
+  describe('goal reached - new crowdsale for test', () => {
+    it('should validate goal is being reached', async () => {
+      const RATES = [3300];
+      const WALLET = web3.eth.accounts[9];
+      const STAGE_LENGTH = IncreaseTime.duration.days(2); // 2 days
+      const SOFT_CAP = web3.toWei(10, 'ether');
+
+      //  construct stages and rates
+      let latestTime = LatestTime.latestTime();
+
+      let startTimes = [latestTime + 11111111];
+      let endTimes = [startTimes[0] + STAGE_LENGTH];
+
+      let localCrowdsale1 = await GDPCrowdsale.new(startTimes, endTimes, RATES, [ACC_1], WALLET, SOFT_CAP, {
+        value: web3.toWei(0.1, 'ether')
+      });
+      await localCrowdsale1.createTokenContract();
+
+      await IncreaseTime.increaseTimeTo(startTimes[0] + 1);
+
+      await localCrowdsale1.sendTransaction({
+        from: ACC_1,
+        value: SOFT_CAP
+      });
+
+      await IncreaseTime.increaseTimeWith(IncreaseTime.duration.days(3));
+
+      //  1
+      let vaultAddr = await localCrowdsale1.vault();
+      let vault = await RefundVault.at(vaultAddr);
+      assert.isTrue(await localCrowdsale1.hasEnded.call(), 'localCrowdsale1 should be ended before check');
+      assert.isTrue(await localCrowdsale1.goalReached.call(), 'goal should not be reached');
+
+      //  2
+      await asserts.throws(crowdsale.claimRefund({
+        from: ACC_1
+      }), 'refund can not be claimed if ICO was successfull');
+
+      //  3
+      await asserts.throws(crowdsale.forwardFundsToWallet({
+        from: ACC_1
+      }), 'tokens shoould be transfered to walled by owner only');
+
+      //  4
+      await asserts.throws(crowdsale.forwardFundsToWallet(), 'tokens shoould be transfered to walled if ICO was successfull');
+
+    });
   });
 });
