@@ -1,58 +1,6 @@
-/**
- * ASYNC WAY
- */
-
-/*
-let GDPCrowdsale = artifacts.require("./GDPCrowdsale.sol");
-const IncreaseTime = require('../test/helpers/increaseTime');
-
-module.exports = function (deployer, network, accounts) {
-
-    const RATES = [3000, 2200, 2000, 1800];
-    const WALLET = accounts[0];
-    let START_TIMES = []; //  172800
-    let END_TIMES = [];
-
-    deployer.then(() => {
-        return new Promise((accept, reject) => {
-            web3.eth.getBlock('latest', (err, res) => {
-                if (err) {
-                    return reject(err);
-                }
-
-                accept(res);
-            });
-        });
-    }).then((block) => {
-        if (block) {
-            const timestamp = block.timestamp;
-            const RATES = [3000, 2200, 2000, 1800];
-            const STAGE_LENGTH = IncreaseTime.duration.days(2);
-            const WALLET = accounts[0];
-            console.log('1:   ', timestamp, RATES, STAGE_LENGTH, WALLET);
-
-            const times = calculateStartEndTimes(timestamp, RATES, STAGE_LENGTH);
-
-            const start = times[0];
-            const end = times[1];
-
-            console.log('2:   ', start, end, RATES, WALLET);
-
-            return deployer.deploy(GDPCrowdsale, start, end, RATES, WALLET);
-        }
-    });
-
-};
-*/
-
-
-/**
- * WORKING
- */
-
+let GDPToken = artifacts.require("./GDPToken.sol");
 let GDPCrowdsale = artifacts.require("./GDPCrowdsale.sol");
 let IncreaseTime = require('../test/helpers/increaseTime');
-let LatestTime = require('../test/helpers/latestTime');
 
 module.exports = function (deployer, network, accounts) {
     const BASIC_RATE = 1800;
@@ -63,13 +11,14 @@ module.exports = function (deployer, network, accounts) {
 
     let whitelist = [];
 
-    // IMPORTANT:  stages timestamps for TESTING ONLY. You need to provide start and end time.
+    // IMPORTANT: stages timestamps
+    // for TESTING ONLY.You need to provide start and end time.
     let timestamp = 1521567000; //  IMPORTANT: update this value
     let start = [1521567000, 1521567201, 1521567402, 1521567603];
     let end = [1521567200, 1521567401, 1521567602, 1521567803];
 
     if (network != 'ropsten') {
-        timestamp = LatestTime.latestTime();
+        timestamp = web3.eth.getBlock('latest').timestamp;
         whitelist = [web3.eth.accounts[1], web3.eth.accounts[2]];
 
         const times = calculateStartEndTimes(timestamp, BONUSES, STAGE_LENGTH);
@@ -82,15 +31,16 @@ module.exports = function (deployer, network, accounts) {
     console.log('\ntimestamp, STAGE_LENGTH: ', timestamp, STAGE_LENGTH);
     console.log('start: ', start);
     console.log('end: ', end);
-    console.log('BASIC_RATE, BONUSES, whitelist, WALLET, SOFT_CAP:   ', BASIC_RATE, BONUSES, whitelist, WALLET, SOFT_CAP);
+    console.log('BASIC_RATE, BONUSES, whitelist, WALLET, SOFT_CAP:   ', BASIC_RATE, BONUSES, whitelist, WALLET, SOFT_CAP, '\n\n\n');
 
-    // deployer.deploy(GDPCrowdsale, start, end, BASIC_RATE, BONUSES, WALLET, SOFT_CAP).then(async () => {
-    //     let ico = await GDPCrowdsale.deployed();
+    deployer.deploy(GDPToken).then(async () => {
+        let token = await GDPToken.deployed();
 
-    //     await ico.createTokenContract();
-    //     await ico.createWhitelistContract();
-    //     await ico.createPausableContract();
-    // });
+        await deployer.deploy(GDPCrowdsale, start, end, BASIC_RATE, BONUSES, [], WALLET, SOFT_CAP, token.address);
+        let ico = await GDPCrowdsale.deployed();
+
+        token.transferOwnership(ico.address);
+    });
 };
 
 /**

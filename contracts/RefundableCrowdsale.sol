@@ -65,7 +65,7 @@ contract RefundableCrowdsale is StagesCrowdsale {
   /**
    * @dev Overrides Crowdsale fund forwarding, sending funds to vault.
    */
-  function forwardFunds() public onlyOwner {
+  function forwardFunds() public onlyOwner payable {
     weiRaised = weiRaised.add(msg.value);    
     vault.deposit.value(msg.value)(msg.sender);
   }

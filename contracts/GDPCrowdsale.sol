@@ -26,10 +26,12 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, RefundableCrow
    // TODO: uptade to styleguides
   event TokenPurchase(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
 
-  function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256 _basicRate, uint256[] _stageBonus, address[] _whitelist, address _wallet, uint256 _goal) 
+  function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256 _basicRate, uint256[] _stageBonus, address[] _whitelist, address _wallet, uint256 _goal, address _tokenAddress) 
     WhitelistedCrowdsale(_whitelist)
     RefundableCrowdsale(_wallet, _goal, _startTimes, _endTimes, _basicRate, _stageBonus) public payable {
+      require(_tokenAddress != address(0));
 
+      token = GDPToken(_tokenAddress);
   }
 
   /**
@@ -60,15 +62,6 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, RefundableCrow
 
     token.mint(beneficiary, _amount);
     TokenPurchase(msg.sender, beneficiary, 0, _amount);
-  }
-
-  /**
-    * PRIVATE
-  */
-
-  // creates the token to be sold.
-  function createTokenContract() public onlyOwner {
-    token = new GDPToken();
   }
 
   function validPurchase() internal view returns (bool) {
