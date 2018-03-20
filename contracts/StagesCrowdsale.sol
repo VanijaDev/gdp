@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.19;
 
 import '../node_modules/zeppelin-solidity/contracts/math/SafeMath.sol';
 import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
@@ -7,11 +7,11 @@ contract StagesCrowdsale is Ownable {
   
   using SafeMath for uint256;
 
+  uint256 public basicRate;
+
   // start and end timestamps where investments are allowed (both inclusive)
   uint256[] public startTimes;
   uint256[] public endTimes;
-
-  uint256 public basicRate;
 
   /** 
     * how many token units a buyer gets per ETH
@@ -26,9 +26,9 @@ contract StagesCrowdsale is Ownable {
     require(validate_StartTimes_EndTimes_TimeNow_StageBonus(_startTimes, _endTimes, now, _stageBonus));
     require(_basicRate > 0);
 
+    basicRate = _basicRate;
     startTimes = _startTimes;
     endTimes = _endTimes;
-    basicRate = _basicRate;
     stageBonus = _stageBonus;
   }
 
@@ -89,7 +89,7 @@ contract StagesCrowdsale is Ownable {
     return withinCrowdsalePeriod;
   }
 
-  function getTokenAmount(uint256 _weiAmount) internal view returns(uint256) {
+  function getTokenAmount(uint256 _weiAmount) public view returns(uint256) {
     uint256 basicAmount = _weiAmount.mul(basicRate);
     uint256 bonus = currentStageBonus();
     uint256 bonusAmount = basicAmount.mul(bonus).div(100);

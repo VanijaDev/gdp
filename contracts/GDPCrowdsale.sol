@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.19;
 
 import './GDPToken.sol';
 import './PausableCrowdsale.sol';
@@ -29,7 +29,7 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, RefundableCrow
   function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256 _basicRate, uint256[] _stageBonus, address[] _whitelist, address _wallet, uint256 _goal) 
     WhitelistedCrowdsale(_whitelist)
     RefundableCrowdsale(_wallet, _goal, _startTimes, _endTimes, _basicRate, _stageBonus) public payable {
-      require(msg.value > 0);
+
   }
 
   /**
@@ -76,6 +76,22 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, RefundableCrow
     bool withinCrowdsalePeriod = super.validPurchase();
 
     return withinCrowdsalePeriod && nonZeroPurchase;
+  }
+
+
+  /**
+    * OVERRIDEN
+   */
+
+  //  RefundableCrowdsale
+   function claimRefund() public {
+    super.claimRefund();
+    token.finishMinting();
+  }
+
+  function forwardFundsToWallet() public onlyOwner {
+    super.forwardFundsToWallet();
+    token.finishMinting();
   }
 
 }

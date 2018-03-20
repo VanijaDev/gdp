@@ -41,7 +41,7 @@ contract('GDPCrowdsale', (accounts) => {
     const TOKEN_TOTAL_SUPPLY_LIMIT = 100000000 * 10 ** 18;
 
     it('validate initial values', async () => {
-      let rates = await crowdsale.stagesCount.call();
+      assert.equal((await crowdsale.basicRate.call()).toNumber(), 1800, 'wrong basicRate');
       assert.equal((await crowdsale.stagesCount.call()).toNumber(), 4, 'wrong ICO stages count');
       assert.notEqual(await crowdsale.token.call(), 0, 'token should be already created');
       assert.isFalse(await crowdsale.hasEnded.call(), 'crowdsale should still go on');
@@ -260,28 +260,28 @@ contract('GDPCrowdsale', (accounts) => {
 
   describe('whitelist', () => {
     it('should show address is whitelisted', async () => {
-      assert.isTrue(await crowdsale.isWhitelisted.call(OWNER), 'owner should be whitelisted');
-      assert.isTrue(await crowdsale.isWhitelisted.call(ACC_1), 'ACC_1 was set to be whitelisted');
+      assert.isTrue(await crowdsale.whitelist.call(OWNER), 'owner should be whitelisted');
+      assert.isTrue(await crowdsale.whitelist.call(ACC_1), 'ACC_1 was set to be whitelisted');
     });
 
     it('should show if address is not in whitelist', async () => {
-      assert.isFalse(await crowdsale.isWhitelisted.call(web3.eth.accounts[7]), 'account 7 should not be whitelisted');
+      assert.isFalse(await crowdsale.whitelist.call(web3.eth.accounts[7]), 'account 7 should not be whitelisted');
     });
 
     it('should allow owner to add to whitelst', async () => {
       const ACC_9 = web3.eth.accounts[8];
 
-      assert.isFalse(await crowdsale.isWhitelisted.call(ACC_9), 'ACC_9 should not be in whitelist');
+      assert.isFalse(await crowdsale.whitelist.call(ACC_9), 'ACC_9 should not be in whitelist');
 
       await crowdsale.addToWhitelist([ACC_9]);
-      assert.isTrue(await crowdsale.isWhitelisted.call(ACC_9), 'ACC_9 should be whitelisted after adding to whitelist');
+      assert.isTrue(await crowdsale.whitelist.call(ACC_9), 'ACC_9 should be whitelisted after adding to whitelist');
     });
 
     it('should allow owner to remove from whitelst', async () => {
-      assert.isTrue(await crowdsale.isWhitelisted.call(ACC_1), 'ACC_1 should be in whitelist');
+      assert.isTrue(await crowdsale.whitelist.call(ACC_1), 'ACC_1 should be in whitelist');
 
       await crowdsale.removeFromWhitelist([ACC_1]);
-      assert.isFalse(await crowdsale.isWhitelisted.call(ACC_1), 'ACC_1 should not be whitelisted after removing from whitelist');
+      assert.isFalse(await crowdsale.whitelist.call(ACC_1), 'ACC_1 should not be whitelisted after removing from whitelist');
     });
 
     it('should restrict not owner to modify whitelist', async () => {
@@ -319,40 +319,6 @@ contract('GDPCrowdsale', (accounts) => {
         from: ACC_8,
         value: WEI
       }));
-    });
-  });
-
-  describe('stage timing update', () => {
-    it('should validate start & end times update', async () => {
-      //  create new times
-      let latestTime = LatestTime.latestTime();
-      let startTimesUpdated = [latestTime + 100, latestTime + 200, latestTime + 300, latestTime + 400];
-      let endTimesUpdated = [latestTime + 199, latestTime + 299, latestTime + 399, latestTime + 499];
-
-      await crowdsale.updateCrowdsaleStages(startTimesUpdated, endTimesUpdated);
-
-      //  1
-      let stage1_start_updated = new BigNumber(await crowdsale.startTimes.call(1)).toFixed();
-      assert.equal(stage1_start_updated, startTimesUpdated[1], 'stage 1 start was not updated properly');
-
-      //  2
-      let stage1_end_updated = new BigNumber(await crowdsale.endTimes.call(1)).toFixed();
-      assert.equal(stage1_end_updated, endTimesUpdated[1], 'stage 1 end was not updated properly');
-
-      //  3
-      let stage3_start_updated = new BigNumber(await crowdsale.startTimes.call(3)).toFixed();
-      assert.equal(stage3_start_updated, startTimesUpdated[3], 'stage 3 was not updated properly');
-    });
-
-    it('should validate finish time update', async () => {
-      let stagesCount = (await crowdsale.stagesCount.call()).toNumber();
-      let currentFinishTime = (await crowdsale.endTimes.call(stagesCount - 1)).toNumber();
-
-      let updatedFinishTime = currentFinishTime + 2000;
-      await crowdsale.updateCrowdsaleFinishTime(updatedFinishTime);
-
-      let finishTimeAfterUpdate = (await crowdsale.endTimes.call(stagesCount - 1)).toNumber();
-      assert.equal(finishTimeAfterUpdate, updatedFinishTime, 'crowdsale finish time is wrond after update');
     });
   });
 
@@ -396,6 +362,40 @@ contract('GDPCrowdsale', (accounts) => {
     });
   });
 
+  describe('stage timing update', () => {
+    it('should validate start & end times update', async () => {
+      //  create new times
+      let latestTime = LatestTime.latestTime();
+      let startTimesUpdated = [latestTime + 100, latestTime + 200, latestTime + 300, latestTime + 400];
+      let endTimesUpdated = [latestTime + 199, latestTime + 299, latestTime + 399, latestTime + 499];
+
+      await crowdsale.updateCrowdsaleStages(startTimesUpdated, endTimesUpdated);
+
+      //  1
+      let stage1_start_updated = new BigNumber(await crowdsale.startTimes.call(1)).toFixed();
+      assert.equal(stage1_start_updated, startTimesUpdated[1], 'stage 1 start was not updated properly');
+
+      //  2
+      let stage1_end_updated = new BigNumber(await crowdsale.endTimes.call(1)).toFixed();
+      assert.equal(stage1_end_updated, endTimesUpdated[1], 'stage 1 end was not updated properly');
+
+      //  3
+      let stage3_start_updated = new BigNumber(await crowdsale.startTimes.call(3)).toFixed();
+      assert.equal(stage3_start_updated, startTimesUpdated[3], 'stage 3 was not updated properly');
+    });
+
+    it('should validate finish time update', async () => {
+      let stagesCount = (await crowdsale.stagesCount.call()).toNumber();
+      let currentFinishTime = (await crowdsale.endTimes.call(stagesCount - 1)).toNumber();
+
+      let updatedFinishTime = currentFinishTime + 2000;
+      await crowdsale.updateCrowdsaleFinishTime(updatedFinishTime);
+
+      let finishTimeAfterUpdate = (await crowdsale.endTimes.call(stagesCount - 1)).toNumber();
+      assert.equal(finishTimeAfterUpdate, updatedFinishTime, 'crowdsale finish time is wrond after update');
+    });
+  });
+
   /**
    * IMPORTANT: this should be last tests
    */
@@ -413,9 +413,7 @@ contract('GDPCrowdsale', (accounts) => {
       let startTimes = [latestTime + STAGE_LENGTH];
       let endTimes = [startTimes[0] + STAGE_LENGTH];
 
-      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [], WALLET, SOFT_CAP, {
-        value: web3.toWei(0.1, 'ether')
-      });
+      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [], WALLET, SOFT_CAP);
       await localCrowdsale.createTokenContract();
 
       await asserts.throws(localCrowdsale.sendTransaction({
@@ -530,9 +528,7 @@ contract('GDPCrowdsale', (accounts) => {
       let startTimes = [latestTime + 11111111];
       let endTimes = [startTimes[0] + STAGE_LENGTH];
 
-      let localCrowdsale1 = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [ACC_1], WALLET, SOFT_CAP, {
-        value: web3.toWei(0.1, 'ether')
-      });
+      let localCrowdsale1 = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [ACC_1], WALLET, SOFT_CAP);
       await localCrowdsale1.createTokenContract();
 
       await IncreaseTime.increaseTimeTo(startTimes[0] + 1);

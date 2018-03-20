@@ -52,36 +52,45 @@ module.exports = function (deployer, network, accounts) {
 
 let GDPCrowdsale = artifacts.require("./GDPCrowdsale.sol");
 let IncreaseTime = require('../test/helpers/increaseTime');
+let LatestTime = require('../test/helpers/latestTime');
 
 module.exports = function (deployer, network, accounts) {
     const BASIC_RATE = 1800;
     const BONUSES = [40, 30, 20, 0]; //  in %
-    const STAGE_LENGTH = IncreaseTime.duration.days(2);
+    const STAGE_LENGTH = IncreaseTime.duration.minutes(5);
     const WALLET = accounts[0];
-    const SOFT_CAP = web3.toWei(1000, 'ether');
+    const SOFT_CAP = 1000; // in ETH;
 
-    let timestamp = 00000000000; //  IMPORTANT: update this value
+    let whitelist = [];
+
+    // IMPORTANT:  stages timestamps for TESTING ONLY. You need to provide start and end time.
+    let timestamp = 1521567000; //  IMPORTANT: update this value
+    let start = [1521567000, 1521567201, 1521567402, 1521567603];
+    let end = [1521567200, 1521567401, 1521567602, 1521567803];
+
     if (network != 'ropsten') {
-        timestamp = web3.eth.getBlock('latest').timestamp;
+        timestamp = LatestTime.latestTime();
+        whitelist = [web3.eth.accounts[1], web3.eth.accounts[2]];
+
+        const times = calculateStartEndTimes(timestamp, BONUSES, STAGE_LENGTH);
+
+        start = times[0];
+        end = times[1];
     }
 
-    const times = calculateStartEndTimes(timestamp, BONUSES, STAGE_LENGTH);
 
-    const start = times[0];
-    const end = times[1];
+    console.log('\ntimestamp, STAGE_LENGTH: ', timestamp, STAGE_LENGTH);
+    console.log('start: ', start);
+    console.log('end: ', end);
+    console.log('BASIC_RATE, BONUSES, whitelist, WALLET, SOFT_CAP:   ', BASIC_RATE, BONUSES, whitelist, WALLET, SOFT_CAP);
 
-    const whitelist = [web3.eth.accounts[1], web3.eth.accounts[2]];
+    // deployer.deploy(GDPCrowdsale, start, end, BASIC_RATE, BONUSES, WALLET, SOFT_CAP).then(async () => {
+    //     let ico = await GDPCrowdsale.deployed();
 
-    // console.log('timestamp, BASIC_RATE, BONUSES, STAGE_LENGTH, WALLET:   ', timestamp, BASIC_RATE, BONUSES, STAGE_LENGTH, WALLET);
-    // console.log('start', start);
-    // console.log('end', end);
-
-    deployer.deploy(GDPCrowdsale, start, end, BASIC_RATE, BONUSES, whitelist, WALLET, SOFT_CAP, {
-        value: web3.toWei(0.1, 'ether')
-    }).then(async () => {
-        let ico = await GDPCrowdsale.deployed();
-        await ico.createTokenContract();
-    });
+    //     await ico.createTokenContract();
+    //     await ico.createWhitelistContract();
+    //     await ico.createPausableContract();
+    // });
 };
 
 /**

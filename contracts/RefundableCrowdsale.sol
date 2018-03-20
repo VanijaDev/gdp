@@ -1,9 +1,7 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.19;
 
 import '../utils/RefundVault.sol';
-import '../node_modules/zeppelin-solidity/contracts/math/SafeMath.sol';
 import './StagesCrowdsale.sol';
-
 
 /**
  * @title RefundableCrowdsale
@@ -30,9 +28,8 @@ contract RefundableCrowdsale is StagesCrowdsale {
   function RefundableCrowdsale(address _wallet, uint256 _goal, uint256[] _startTimes, uint256[] _endTimes, uint256 _basicRate, uint256[] _stageBonus)
     StagesCrowdsale(_startTimes, _endTimes, _basicRate, _stageBonus) public {
       require(_goal > 0);
-      require(_wallet != address(0));
 
-      goal = _goal;
+      goal = _goal * uint(10)**18;  //  convert to wei
 
       vault = new RefundVault(_wallet);
   }
@@ -68,7 +65,7 @@ contract RefundableCrowdsale is StagesCrowdsale {
   /**
    * @dev Overrides Crowdsale fund forwarding, sending funds to vault.
    */
-  function forwardFunds() internal {
+  function forwardFunds() public onlyOwner {
     weiRaised = weiRaised.add(msg.value);    
     vault.deposit.value(msg.value)(msg.sender);
   }
