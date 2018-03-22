@@ -46,8 +46,4 @@ contract WhitelistedCrowdsale is Ownable {
       whitelist[addr] = false;
     }
   }
-
-  function isWhitelisted(address _address) public view returns (bool) {
-    return whitelist[_address];
-  }
 }
