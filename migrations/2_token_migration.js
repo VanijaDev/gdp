@@ -11,22 +11,17 @@ module.exports = function (deployer, network, accounts) {
 
     let whitelist = [];
 
-    // IMPORTANT: stages timestamps
-    // for TESTING ONLY.You need to provide start and end time.
-    let timestamp = 1521567000; //  IMPORTANT: update this value
-    let start = [1521567000, 1521567201, 1521567402, 1521567603];
-    let end = [1521567200, 1521567401, 1521567602, 1521567803];
+    // IMPORTANT: TESTING ONLY.You need to provide start and end time.
+    let timestamp = 1521629072; //  IMPORTANT: update this value
 
     if (network != 'ropsten') {
         timestamp = web3.eth.getBlock('latest').timestamp;
         whitelist = [web3.eth.accounts[1], web3.eth.accounts[2]];
-
-        const times = calculateStartEndTimes(timestamp, BONUSES, STAGE_LENGTH);
-
-        start = times[0];
-        end = times[1];
     }
 
+    const times = calculateStartEndTimes(timestamp, BONUSES, STAGE_LENGTH);
+    let start = times[0];
+    let end = times[1];
 
     console.log('\ntimestamp, STAGE_LENGTH: ', timestamp, STAGE_LENGTH);
     console.log('start: ', start);
