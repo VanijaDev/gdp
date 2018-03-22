@@ -12,10 +12,10 @@ module.exports = function (deployer, network, accounts) {
     let whitelist = [];
 
     // IMPORTANT: TESTING ONLY.You need to provide start and end time.
-    let timestamp = 1521629072; //  IMPORTANT: update this value
+    let timestamp = 0000000000; //  IMPORTANT: update this value
 
     if (network != 'ropsten') {
-        timestamp = web3.eth.getBlock('latest').timestamp;
+        timestamp = web3.eth.getBlock('latest').timestamp + 1;
         whitelist = [web3.eth.accounts[1], web3.eth.accounts[2]];
     }
 
@@ -34,7 +34,11 @@ module.exports = function (deployer, network, accounts) {
         await deployer.deploy(GDPCrowdsale, start, end, BASIC_RATE, BONUSES, [], WALLET, SOFT_CAP, token.address);
         let ico = await GDPCrowdsale.deployed();
 
-        token.transferOwnership(ico.address);
+        //  transfer ownership to crowdsale
+        await token.transferOwnership(ico.address);
+
+        //  add whitelist
+        await ico.addToWhitelist(whitelist);
     });
 };
 
@@ -51,8 +55,8 @@ function calculateStartEndTimes(latestTime, bonuses, stageLength) {
 
     for (let i = 0; i < bonuses.length; i++) {
         if (i == 0) {
-            startTimes.push(latestTime + 1);
-            endTimes.push(latestTime + 1 + stageLength);
+            startTimes.push(latestTime);
+            endTimes.push(latestTime + stageLength);
         } else {
             startTimes.push(endTimes[i - 1] + 1);
             endTimes.push(startTimes[i] + stageLength);
