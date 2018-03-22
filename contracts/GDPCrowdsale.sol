@@ -28,7 +28,7 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, RefundableCrow
 
   function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256 _basicRate, uint256[] _stageBonus, address[] _whitelist, address _wallet, uint256 _goal, address _tokenAddress) 
     WhitelistedCrowdsale(_whitelist)
-    RefundableCrowdsale(_wallet, _goal, _startTimes, _endTimes, _basicRate, _stageBonus) public payable {
+    RefundableCrowdsale(_wallet, _goal, _startTimes, _endTimes, _basicRate, _stageBonus) public {
       require(_tokenAddress != address(0));
 
       token = GDPToken(_tokenAddress);
