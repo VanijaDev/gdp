@@ -32,6 +32,8 @@ contract('GDPCrowdsale', (accounts) => {
       return crowdsale.token.call();
     }).then((tokenAddresss) => {
       token = GDPToken.at(tokenAddresss);
+    }).then(() => {
+      IncreaseTime.increaseTimeWith(1);
     }).then(reverter.snapshot);
   });
 
@@ -406,15 +408,16 @@ contract('GDPCrowdsale', (accounts) => {
       const BONUSES = [40]; //  in %
       const STAGE_LENGTH = IncreaseTime.duration.days(2);
       const WALLET = accounts[0];
-      const SOFT_CAP = web3.toWei(1000, 'ether');
+      const SOFT_CAP = 1000;
 
       let latestTime = LatestTime.latestTime();
 
       let startTimes = [latestTime + STAGE_LENGTH];
       let endTimes = [startTimes[0] + STAGE_LENGTH];
 
-      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [], WALLET, SOFT_CAP);
-      await localCrowdsale.createTokenContract();
+      let token = await GDPToken.new();
+      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [], WALLET, SOFT_CAP, token.address);
+      await token.transferOwnership(localCrowdsale.address);
 
       await asserts.throws(localCrowdsale.sendTransaction({
         value: ACC_1_WEI_SENT
@@ -521,21 +524,22 @@ contract('GDPCrowdsale', (accounts) => {
       const BONUSES = [40]; //  in %
       const STAGE_LENGTH = IncreaseTime.duration.days(2);
       const WALLET = accounts[0];
-      const SOFT_CAP = web3.toWei(10, 'ether');
+      const SOFT_CAP = 10;
 
       let latestTime = LatestTime.latestTime();
 
       let startTimes = [latestTime + 11111111];
       let endTimes = [startTimes[0] + STAGE_LENGTH];
 
-      let localCrowdsale1 = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [ACC_1], WALLET, SOFT_CAP);
-      await localCrowdsale1.createTokenContract();
+      let token = await GDPToken.new();
+      let localCrowdsale1 = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [ACC_1], WALLET, SOFT_CAP, token.address);
+      await token.transferOwnership(localCrowdsale1.address);
 
       await IncreaseTime.increaseTimeTo(startTimes[0] + 1);
 
       await localCrowdsale1.sendTransaction({
         from: ACC_1,
-        value: SOFT_CAP
+        value: web3.toWei(SOFT_CAP, 'ether')
       });
 
       await IncreaseTime.increaseTimeWith(IncreaseTime.duration.days(3));
