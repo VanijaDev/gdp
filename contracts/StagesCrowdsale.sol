@@ -84,7 +84,7 @@ contract StagesCrowdsale is Ownable {
     * INTERNAL
   */
 
-  function validPurchase() internal view returns (bool) {
+  function isRunning() public view returns (bool) {
     bool withinCrowdsalePeriod = now >= startTimes[0] && now <= endTimes[endTimes.length - 1];
     return withinCrowdsalePeriod;
   }

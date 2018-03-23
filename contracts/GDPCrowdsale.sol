@@ -58,15 +58,15 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, RefundableCrow
 
   //  owner is able to mint tokens manually
   function manualMint(address beneficiary, uint256 _amount) onlyOwner isNotPaused onlyWhitelisted(msg.sender) public {
-    require(super.validPurchase());
+    require(super.isRunning());
 
     token.mint(beneficiary, _amount);
     TokenPurchase(msg.sender, beneficiary, 0, _amount);
   }
 
-  function validPurchase() internal view returns (bool) {
+  function validPurchase() private view returns (bool) {
     bool nonZeroPurchase = msg.value > 0;
-    bool withinCrowdsalePeriod = super.validPurchase();
+    bool withinCrowdsalePeriod = super.isRunning();
 
     return withinCrowdsalePeriod && nonZeroPurchase;
   }
