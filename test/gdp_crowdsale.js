@@ -7,7 +7,7 @@ const Reverter = require('./helpers/reverter');
 const IncreaseTime = require('../test/helpers/increaseTime');
 const LatestTime = require('../test/helpers/latestTime');
 const Chai = require('chai');
-const BigNumber = require('bignumber.js');
+var BigNumber = require('bignumber.js');
 
 //  TODO: start with should
 
@@ -42,20 +42,55 @@ contract('GDPCrowdsale', (accounts) => {
   describe('initial validation', () => {
     const TOKEN_TOTAL_SUPPLY_LIMIT = 100000000 * 10 ** 18;
 
-    it('validate initial values', async () => {
+    it('validate basic rate', async () => {
       assert.equal((await crowdsale.basicRate.call()).toNumber(), 1800, 'wrong basicRate');
+    });
+
+    it('validate ICO stages count', async () => {
       assert.equal((await crowdsale.stagesCount.call()).toNumber(), 4, 'wrong ICO stages count');
+    });
+
+    it('validate token was created', async () => {
       assert.notEqual(await crowdsale.token.call(), 0, 'token should be already created');
+    });
+
+    it('validate ICO is not paused', async () => {
       assert.isFalse(await crowdsale.hasEnded.call(), 'crowdsale should still go on');
     });
 
-    it('validate newly created token', async () => {
-      assert.equal(await token.owner.call(), crowdsale.address, 'wrong token owner address');
-      assert.equal(await token.totalSupplyLimit.call(), TOKEN_TOTAL_SUPPLY_LIMIT, 'wrong total supply limit');
+    it('validate owner ownes total supply', async () => {
+      assert.equal(new BigNumber(await token.balanceOf.call(crowdsale.address)).toFixed(), new BigNumber(await token.totalSupply.call()).toFixed(), 'owner should own total supply');
     });
 
-    it('pause state', async () => {
+    it('validate token amount for crowdsale purchases amount', async () => {
+      let icoPercent = await crowdsale.icoTokensReservedPercent.call();
+      const reservedValidation = new BigNumber(await token.totalSupply.call() / 100 * icoPercent).toFixed();
+      let reserved = new BigNumber(await crowdsale.icoTokensReserved.call()).toFixed();
+      assert.equal(reserved, reservedValidation, 'wrong amount of icoTokensReserved');
+    });
+
+    it('validate token amount for manual transfer', async () => {
+      let icoPercent = await crowdsale.icoTokensReservedPercent.call();
+      let manualTransferPercent = 100 - icoPercent;
+      const manualTransferValidation = new BigNumber(await token.totalSupply.call() / 100 * manualTransferPercent).toFixed();
+      let manualTransfer = new BigNumber(await crowdsale.manualTokensTransferReserved.call()).toFixed();
+      assert.equal(manualTransfer, manualTransferValidation, 'wrong amount of manual transfer');
+    });
+
+    it('validate newly created token\'s owner', async () => {
+      assert.equal(await token.owner.call(), crowdsale.address, 'wrong token owner address');
+    });
+
+    it('validate pause state', async () => {
       assert.isFalse(await crowdsale.isPaused.call(), 'should not be paused at th beginning');
+    });
+
+    it('validate token limit value for ico purchase', async () => {
+      let totalSupply = new BigNumber(await token.totalSupply.call()).toFixed();
+      let purchaseLimitInPercent = new BigNumber(await crowdsale.icoTokensReservedPercent.call()).toFixed();
+      let purchaseLimit = new BigNumber(await crowdsale.icoTokensReserved.call()).toFixed();
+
+      assert.equal(new BigNumber(totalSupply / 100 * purchaseLimitInPercent).toFixed(), purchaseLimit, 'wrong purchase token limit');
     });
   });
 
@@ -91,46 +126,53 @@ contract('GDPCrowdsale', (accounts) => {
         value: ACC_1_WEI_SENT
       }), 'purchase can not be performed, while crowdsale is paused');
 
-      //  manual mint
-      await asserts.throws(crowdsale.manualMint(0x123, 111), 'manual mint can not be performed, while crowdsale is paused');
+      //  manual transfer
+      await asserts.throws(crowdsale.manualTransfer(0x123, 111), 'manual transfer can not be performed, while crowdsale is paused');
     });
   });
 
-  describe('manual minting', () => {
-    it('should let owner mint manually', async () => {
+  describe('manual transfer', () => {
+    it('should let owner transfer manually', async () => {
       const TOKENS = new BigNumber(web3.toWei(3, 'ether')).toFixed();
+      let crowdsaleTokens = new BigNumber(await token.balanceOf.call(crowdsale.address));
 
-      await asserts.doesNotThrow(crowdsale.manualMint(ACC_1, TOKENS));
+      await asserts.doesNotThrow(crowdsale.manualTransfer(ACC_1, TOKENS));
 
-      let balance = new BigNumber(await token.balanceOf(ACC_1)).toFixed();
-      assert.equal(balance, TOKENS, 'wrong token amount after manual mint');
+      let balance = new BigNumber(await token.balanceOf(ACC_1));
+      assert.equal(balance, TOKENS, 'wrong token amount after manual transfer');
+
+      let crowdsaleTokensAfterTransfer = new BigNumber(await token.balanceOf.call(crowdsale.address));
+      assert.equal(balance, new BigNumber(crowdsaleTokens.minus(crowdsaleTokensAfterTransfer)).toFixed(), 'wrong token amount substracted');
     });
 
-    it('should not let not owner mint manually', async () => {
+    it('should not let not owner transfer manually', async () => {
       const TOKENS = new BigNumber(web3.toWei(3, 'ether')).toFixed();
 
-      await asserts.throws(crowdsale.manualMint(ACC_1, TOKENS, {
+      await asserts.throws(crowdsale.manualTransfer(ACC_1, TOKENS, {
         from: ACC_1
       }));
     });
 
-    it('should not mint more than limit', async () => {
-      const MaxAmount = 100000000;
-      const FirstMintAmount = 99000000;
-      const DiffMintAmount = 1000000;
-      let Acc_1 = accounts[1];
-      let decimals = await token.decimals.call();
+    it('should not transfer more than manual transfer limit', async () => {
+      let manualTransferLimit = new BigNumber(await crowdsale.manualTokensTransferReserved.call()).toFixed();
+      let half = new BigNumber(manualTransferLimit / 2).toFixed();
 
-      await crowdsale.manualMint(Acc_1, web3.toWei(FirstMintAmount, "ether"));
+      // 1 - transfer half to ACC_1
+      await asserts.doesNotThrow(crowdsale.manualTransfer(ACC_1, half), 'manual transfer should success bacause less than limit');
+      let manuallyTransferred = new BigNumber(await crowdsale.manualTokensTransferred.call()).toFixed();
+      await assert.equal(manuallyTransferred, half, 'manually transferred amount should be equal to half');
+      let ACC_1_balance = new BigNumber(await token.balanceOf.call(ACC_1)).toFixed();
+      await assert.equal(half, ACC_1_balance, 'manually transfer amount for ACC_1 should be equal to half');
 
-      const CorrectBalance_FirstMintAmount = FirstMintAmount * 10 ** decimals;
-      assert.equal((await token.balanceOf.call(Acc_1)).toNumber(), CorrectBalance_FirstMintAmount, 'wrong balance after FirstMintAmount');
+      //  2 - transfer half to ACC_1
+      await asserts.doesNotThrow(crowdsale.manualTransfer(ACC_2, half), 'manual transfer should success bacause equals to limit');
+      manuallyTransferred = new BigNumber(await crowdsale.manualTokensTransferred.call()).toFixed();
+      await assert.equal(manuallyTransferred, manualTransferLimit, 'manually transferred amount should be equal to manualTransferLimit');
+      let ACC_2_balance = new BigNumber(await token.balanceOf.call(ACC_2)).toFixed();
+      await assert.equal(half, ACC_2_balance, 'manually transferred amount for ACC_2 should be equal to half');
 
-      await asserts.throws(crowdsale.manualMint(Acc_1, web3.toWei(FirstMintAmount, "ether")), 'mint should fail bacause more than limit');
-      await asserts.doesNotThrow(crowdsale.manualMint(Acc_1, web3.toWei(DiffMintAmount, "ether")), 'should be successfully minted');
-
-      const CorrectBalance_LastMintAmount = MaxAmount * 10 ** decimals;
-      assert.equal((await token.balanceOf.call(Acc_1)).toNumber(), CorrectBalance_LastMintAmount, 'wrong balance after last mint');
+      //  3 - fails because limit is being reached
+      await asserts.throws(crowdsale.manualTransfer(ACC_1, half), 'manual transfer should fail bacause would be more than limit');
     });
   });
 
@@ -193,7 +235,21 @@ contract('GDPCrowdsale', (accounts) => {
       tokensCorrect = basicAmount + bonusAmount;
       tokens = (await token.balanceOf.call(ACC_2)).toNumber();
       assert.equal(tokens, tokensCorrect, 'wrong token amount for ACC_2 after purchase');
+    });
 
+    it.only('validate amount of tokens substracted from crowdsale balance', async () => {
+      let icoAddress = crowdsale.address;
+      let crowdsaleBalanceBefore = new BigNumber(await token.balanceOf(icoAddress));
+
+      await crowdsale.sendTransaction({
+        from: ACC_2,
+        value: ACC_2_WEI_SENT
+      });
+
+      let acc2Tokens = new BigNumber(await token.balanceOf(ACC_2));
+      let crowdsaleBalanceAfter = new BigNumber(await token.balanceOf(icoAddress));
+
+      assert.equal(acc2Tokens.toFixed(), new BigNumber(crowdsaleBalanceBefore.minus(crowdsaleBalanceAfter)).toFixed());
     });
   });
 
@@ -415,9 +471,9 @@ contract('GDPCrowdsale', (accounts) => {
       let startTimes = [latestTime + STAGE_LENGTH];
       let endTimes = [startTimes[0] + STAGE_LENGTH];
 
-      let token = await GDPToken.new();
-      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [], WALLET, SOFT_CAP, token.address);
-      await token.transferOwnership(localCrowdsale.address);
+      let localToken = await GDPToken.new();
+      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [], WALLET, SOFT_CAP, localToken.address);
+      await localToken.transferOwnership(localCrowdsale.address);
 
       await asserts.throws(localCrowdsale.sendTransaction({
         value: ACC_1_WEI_SENT
@@ -484,22 +540,22 @@ contract('GDPCrowdsale', (accounts) => {
 
       await IncreaseTime.increaseTimeWith(IncreaseTime.duration.days(10));
 
-      //  1
+      //  1 - can not forward funds
       await asserts.throws(crowdsale.forwardFundsToWallet(), 'tokens can not be transfered to walled if ICO was unsuccessfull');
 
-      //  2
+      //  2 - can not purchase
       await asserts.throws(crowdsale.sendTransaction({
         from: ACC_1,
         value: ACC_1_WEI_SENT
       }), 'should not allow purchase after ICO finished');
 
-      //  3
+      //  3 - check vault
       let vaultAddr = await crowdsale.vault();
       let vault = await RefundVault.at(vaultAddr);
       assert.isTrue(await crowdsale.hasEnded.call(), 'crowdsale should be ended before check');
       assert.isFalse(await crowdsale.goalReached.call(), 'goal should not be reached');
 
-      //  4
+      //  4 - claim refund
       let acc1BalanceBefore = (await web3.eth.getBalance(ACC_1)).toNumber();
       assert.equal(new BigNumber(await vault.deposited.call(ACC_1)).toFixed(), ACC_1_WEI_SENT, 'wrong vault deposit for ACC_1 before refund');
 
@@ -510,16 +566,19 @@ contract('GDPCrowdsale', (accounts) => {
       assert.isAbove(acc1BalanceAfter, acc1BalanceBefore, 'balance after refund must be more, then before');
       assert.equal((await vault.deposited.call(ACC_1)).toNumber(), 0, 'wrong vault deposit for ACC_1 after refund');
 
-      //  5
+      //  5 - claim refund again
       await asserts.throws(crowdsale.claimRefund({
         from: ACC_1
       }), 'refund can not be claimed multiple times');
 
+      //  6 - tokens are burned
+      await assert.equal(0, new BigNumber(await token.balanceOf.call(crowdsale.address)).toFixed(), 'tokens should be burned');
+
     });
   });
 
-  describe('goal reached - new crowdsale for test', () => {
-    it('should validate goal is being reached', async () => {
+  describe('local crowdsales created', () => {
+    it('validate goal is being reached', async () => {
       const BASIC_RATE = 1800;
       const BONUSES = [40]; //  in %
       const STAGE_LENGTH = IncreaseTime.duration.days(2);
@@ -531,13 +590,13 @@ contract('GDPCrowdsale', (accounts) => {
       let startTimes = [latestTime + 11111111];
       let endTimes = [startTimes[0] + STAGE_LENGTH];
 
-      let token = await GDPToken.new();
-      let localCrowdsale1 = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [ACC_1], WALLET, SOFT_CAP, token.address);
-      await token.transferOwnership(localCrowdsale1.address);
+      let localToken = await GDPToken.new();
+      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [ACC_1], WALLET, SOFT_CAP, localToken.address);
+      await localToken.transferOwnership(localCrowdsale.address);
 
       await IncreaseTime.increaseTimeTo(startTimes[0] + 1);
 
-      await localCrowdsale1.sendTransaction({
+      await localCrowdsale.sendTransaction({
         from: ACC_1,
         value: web3.toWei(SOFT_CAP, 'ether')
       });
@@ -545,10 +604,10 @@ contract('GDPCrowdsale', (accounts) => {
       await IncreaseTime.increaseTimeWith(IncreaseTime.duration.days(3));
 
       //  1
-      let vaultAddr = await localCrowdsale1.vault();
+      let vaultAddr = await localCrowdsale.vault();
       let vault = await RefundVault.at(vaultAddr);
-      assert.isTrue(await localCrowdsale1.hasEnded.call(), 'localCrowdsale1 should be ended before check');
-      assert.isTrue(await localCrowdsale1.goalReached.call(), 'goal should not be reached');
+      assert.isTrue(await localCrowdsale.hasEnded.call(), 'localCrowdsale should be ended before check');
+      assert.isTrue(await localCrowdsale.goalReached.call(), 'goal should not be reached');
 
       //  2
       await asserts.throws(crowdsale.claimRefund({
@@ -562,7 +621,42 @@ contract('GDPCrowdsale', (accounts) => {
 
       //  4
       await asserts.throws(crowdsale.forwardFundsToWallet(), 'tokens shoould be transfered to walled if ICO was successfull');
+    });
 
+    it('validate user can\'t purchace more, than limit', async () => {
+      //  TODO: move to separate file: here and migration file
+      const BASIC_RATE = 10000000;
+      const BONUSES = [0]; //  in %
+      const STAGE_LENGTH = IncreaseTime.duration.days(2);
+      const WALLET = accounts[0];
+      const SOFT_CAP = 10;
+
+      let latestTime = LatestTime.latestTime() + 111111111;
+
+      let startTimes = [latestTime + STAGE_LENGTH];
+      let endTimes = [startTimes[0] + STAGE_LENGTH];
+
+      let localToken = await GDPToken.new();
+      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [], WALLET, SOFT_CAP, localToken.address);
+      await localToken.transferOwnership(localCrowdsale.address);
+
+      let purchaseLimit = new BigNumber(await localCrowdsale.icoTokensReserved.call()).toFixed();
+      let limitHalf = new BigNumber(purchaseLimit / 2).toFixed();
+      let halfPrice = limitHalf / BASIC_RATE;
+
+      await IncreaseTime.increaseTimeTo(startTimes[0] + 1);
+
+      await localCrowdsale.sendTransaction({
+        value: halfPrice
+      });
+
+      await localCrowdsale.sendTransaction({
+        value: halfPrice
+      });
+
+      await asserts.throws(localCrowdsale.sendTransaction({
+        value: 1
+      }), 'should throw, because purchase limit is been already reached');
     });
   });
 });

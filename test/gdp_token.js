@@ -3,6 +3,7 @@ let GDPCrowdsale = artifacts.require('./GDPCrowdsale.sol');
 
 const Asserts = require('./helpers/asserts');
 const Reverter = require('./helpers/reverter');
+const BigNumber = require('bignumber.js');
 
 contract('GDPToken', (accounts) => {
 
@@ -25,7 +26,7 @@ contract('GDPToken', (accounts) => {
     it('should validate limit for total supply', async () => {
       const TOTAL_SUPPLY_LIMIT = 100000000; //  use without decimals
 
-      let limit = await token.totalSupplyLimit.call();
+      let limit = await token.totalSupply.call();
       assert.equal(web3.fromWei(limit.toNumber(), 'ether'), TOTAL_SUPPLY_LIMIT, 'limits are different');
     });
   });

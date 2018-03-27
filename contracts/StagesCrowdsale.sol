@@ -92,7 +92,7 @@ contract StagesCrowdsale is Ownable {
   function getTokenAmount(uint256 _weiAmount) public view returns(uint256) {
     uint256 basicAmount = _weiAmount.mul(basicRate);
     uint256 bonus = currentStageBonus();
-    uint256 bonusAmount = basicAmount.mul(bonus).div(100);
+    uint256 bonusAmount = basicAmount.div(100).mul(bonus);
     uint256 totalAmount = basicAmount + bonusAmount;
 
     return totalAmount;
