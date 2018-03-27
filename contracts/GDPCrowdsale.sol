@@ -2,10 +2,9 @@ pragma solidity ^0.4.19;
 
 import './GDPToken.sol';
 import './PausableCrowdsale.sol';
-import './WhitelistedCrowdsale.sol';
 import './RefundableCrowdsale.sol';
 
-contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, RefundableCrowdsale {
+contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
 
   using SafeMath for uint256;
 
@@ -33,8 +32,7 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, RefundableCrow
   event TokenPurchase(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
   event ManualTransfer(address indexed from, address indexed to, uint256 amount);
 
-  function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256 _basicRate, uint256[] _stageBonus, address[] _whitelist, address _wallet, uint256 _goal, address _tokenAddress) 
-    WhitelistedCrowdsale(_whitelist)
+  function GDPCrowdsale(uint256[] _startTimes, uint256[] _endTimes, uint256 _basicRate, uint256[] _stageBonus, address _wallet, uint256 _goal, address _tokenAddress)
     RefundableCrowdsale(_wallet, _goal, _startTimes, _endTimes, _basicRate, _stageBonus) public {
       require(_tokenAddress != address(0));
 
@@ -54,7 +52,7 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, RefundableCrow
   }
 
   // low level token purchase function
-  function buyTokens(address _beneficiary) isNotPaused onlyWhitelisted(msg.sender) public payable {
+  function buyTokens(address _beneficiary) isNotPaused public payable {
     require(_beneficiary != address(0));
     require(validPurchase());
 
@@ -70,7 +68,7 @@ contract GDPCrowdsale is PausableCrowdsale, WhitelistedCrowdsale, RefundableCrow
   }
 
   //  owner is able to mint tokens manually
-  function manualTransfer(address _beneficiary, uint256 _amount) onlyOwner isNotPaused onlyWhitelisted(msg.sender) public {
+  function manualTransfer(address _beneficiary, uint256 _amount) onlyOwner isNotPaused public {
     require(super.isRunning());
     require(manualTokensTransferred.add(_amount) <= manualTokensTransferReserved);
 
