@@ -9,8 +9,6 @@ module.exports = function (deployer, network, accounts) {
     const WALLET = accounts[0];
     const SOFT_CAP = 1000; // in ETH;
 
-    let whitelist = [];
-
     // IMPORTANT: TESTING ONLY.You need to provide start and end time.
     let timestamp = 0000000000; //  IMPORTANT: update this value
 
@@ -26,19 +24,16 @@ module.exports = function (deployer, network, accounts) {
     console.log('\ntimestamp, STAGE_LENGTH: ', timestamp, STAGE_LENGTH);
     console.log('start: ', start);
     console.log('end: ', end);
-    console.log('BASIC_RATE, BONUSES, whitelist, WALLET, SOFT_CAP:   ', BASIC_RATE, BONUSES, whitelist, WALLET, SOFT_CAP, '\n\n\n');
+    console.log('BASIC_RATE, BONUSES, WALLET, SOFT_CAP:   ', BASIC_RATE, BONUSES, WALLET, SOFT_CAP, '\n\n\n');
 
     deployer.deploy(GDPToken).then(async () => {
         let token = await GDPToken.deployed();
 
-        await deployer.deploy(GDPCrowdsale, start, end, BASIC_RATE, BONUSES, [], WALLET, SOFT_CAP, token.address);
+        await deployer.deploy(GDPCrowdsale, start, end, BASIC_RATE, BONUSES, WALLET, SOFT_CAP, token.address);
         let ico = await GDPCrowdsale.deployed();
 
         //  transfer ownership to crowdsale
         await token.transferOwnership(ico.address);
-
-        //  add whitelist
-        await ico.addToWhitelist(whitelist);
     });
 };
 

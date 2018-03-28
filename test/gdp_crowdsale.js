@@ -237,7 +237,7 @@ contract('GDPCrowdsale', (accounts) => {
       assert.equal(tokens, tokensCorrect, 'wrong token amount for ACC_2 after purchase');
     });
 
-    it.only('validate amount of tokens substracted from crowdsale balance', async () => {
+    it('validate amount of tokens substracted from crowdsale balance', async () => {
       let icoAddress = crowdsale.address;
       let crowdsaleBalanceBefore = new BigNumber(await token.balanceOf(icoAddress));
 
@@ -408,7 +408,7 @@ contract('GDPCrowdsale', (accounts) => {
       let endTimes = [startTimes[0] + STAGE_LENGTH];
 
       let localToken = await GDPToken.new();
-      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [], WALLET, SOFT_CAP, localToken.address);
+      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, WALLET, SOFT_CAP, localToken.address);
       await localToken.transferOwnership(localCrowdsale.address);
 
       await asserts.throws(localCrowdsale.sendTransaction({
@@ -527,7 +527,7 @@ contract('GDPCrowdsale', (accounts) => {
       let endTimes = [startTimes[0] + STAGE_LENGTH];
 
       let localToken = await GDPToken.new();
-      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [ACC_1], WALLET, SOFT_CAP, localToken.address);
+      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, WALLET, SOFT_CAP, localToken.address);
       await localToken.transferOwnership(localCrowdsale.address);
 
       await IncreaseTime.increaseTimeTo(startTimes[0] + 1);
@@ -573,7 +573,7 @@ contract('GDPCrowdsale', (accounts) => {
       let endTimes = [startTimes[0] + STAGE_LENGTH];
 
       let localToken = await GDPToken.new();
-      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, [], WALLET, SOFT_CAP, localToken.address);
+      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, WALLET, SOFT_CAP, localToken.address);
       await localToken.transferOwnership(localCrowdsale.address);
 
       let purchaseLimit = new BigNumber(await localCrowdsale.icoTokensReserved.call()).toFixed();
