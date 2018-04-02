@@ -6,6 +6,7 @@ const Asserts = require('./helpers/asserts');
 const Reverter = require('./helpers/reverter');
 const IncreaseTime = require('../test/helpers/increaseTime');
 const LatestTime = require('../test/helpers/latestTime');
+const CrowdsaleMock = require('../test/helpers/crowdsaleMock');
 const Chai = require('chai');
 var BigNumber = require('bignumber.js');
 
@@ -42,12 +43,12 @@ contract('GDPCrowdsale', (accounts) => {
   describe('initial validation', () => {
     const TOKEN_TOTAL_SUPPLY_LIMIT = 100000000 * 10 ** 18;
 
-    it('validate basic rate', async () => {
-      assert.equal((await crowdsale.basicRate.call()).toNumber(), 1800, 'wrong basicRate');
+    it('validate rate', async () => {
+      assert.equal((await crowdsale.rate.call()).toNumber(), 1800, 'wrong rate');
     });
 
     it('validate ICO stages count', async () => {
-      assert.equal((await crowdsale.stagesCount.call()).toNumber(), 4, 'wrong ICO stages count');
+      assert.equal((await crowdsale.stagesCount.call()).toNumber(), 3, 'wrong ICO stages count');
     });
 
     it('validate token was created', async () => {
@@ -55,7 +56,11 @@ contract('GDPCrowdsale', (accounts) => {
     });
 
     it('validate ICO is not paused', async () => {
-      assert.isFalse(await crowdsale.hasEnded.call(), 'crowdsale should still go on');
+      assert.isFalse(await crowdsale.isPaused.call(), 'crowdsale should not be paused');
+    });
+
+    it('validate ICO has not closed', async () => {
+      assert.isFalse(await crowdsale.hasEnded.call(), 'crowdsale should not be closed');
     });
 
     it('validate owner ownes total supply', async () => {
@@ -132,7 +137,7 @@ contract('GDPCrowdsale', (accounts) => {
   });
 
   describe('manual transfer', () => {
-    it('should let owner transfer manually', async () => {
+    it('let owner transfer manually', async () => {
       const TOKENS = new BigNumber(web3.toWei(3, 'ether')).toFixed();
       let crowdsaleTokens = new BigNumber(await token.balanceOf.call(crowdsale.address));
 
@@ -145,7 +150,7 @@ contract('GDPCrowdsale', (accounts) => {
       assert.equal(balance, new BigNumber(crowdsaleTokens.minus(crowdsaleTokensAfterTransfer)).toFixed(), 'wrong token amount substracted');
     });
 
-    it('should not let not owner transfer manually', async () => {
+    it('do let not owner transfer manually', async () => {
       const TOKENS = new BigNumber(web3.toWei(3, 'ether')).toFixed();
 
       await asserts.throws(crowdsale.manualTransfer(ACC_1, TOKENS, {
@@ -206,8 +211,8 @@ contract('GDPCrowdsale', (accounts) => {
         value: ACC_1_WEI_SENT
       });
 
-      let basicRate = (await crowdsale.basicRate.call()).toNumber();
-      let basicAmount = ACC_1_WEI_SENT * basicRate;
+      let rate = (await crowdsale.rate.call()).toNumber();
+      let basicAmount = ACC_1_WEI_SENT * rate;
       let bonus = (await crowdsale.currentStageBonus.call()).toNumber();
       let bonusAmount = basicAmount * bonus / 100;
       let tokensCorrect = basicAmount + bonusAmount;
@@ -230,7 +235,7 @@ contract('GDPCrowdsale', (accounts) => {
         value: ACC_2_WEI_SENT
       });
 
-      basicAmount = ACC_2_WEI_SENT * basicRate;
+      basicAmount = ACC_2_WEI_SENT * rate;
       bonusAmount = basicAmount * bonus / 100;
       tokensCorrect = basicAmount + bonusAmount;
       tokens = (await token.balanceOf.call(ACC_2)).toNumber();
@@ -250,6 +255,43 @@ contract('GDPCrowdsale', (accounts) => {
       let crowdsaleBalanceAfter = new BigNumber(await token.balanceOf(icoAddress));
 
       assert.equal(acc2Tokens.toFixed(), new BigNumber(crowdsaleBalanceBefore.minus(crowdsaleBalanceAfter)).toFixed());
+    });
+
+    it('validate token purchase with amount more than first stage goal', async () => {
+      let weiAmount = web3.toWei(11, 'ether');
+      let correctTokens = new BigNumber(web3.toWei((10 * 1800 + 10 * 1800 * 0.4) + (1 * 1800 + 1 * 1800 * 0.2), 'ether')).toFixed();
+
+      await crowdsale.sendTransaction({
+        value: weiAmount
+      });
+
+      let tokenBalance = new BigNumber(await token.balanceOf.call(OWNER)).toFixed();
+      assert.equal(tokenBalance, correctTokens, 'wrong token amount after purchase from 0 to 1 stages');
+    });
+
+    it('validate token purchase with amount more than second stage goal', async () => {
+      let weiAmount = web3.toWei(35, 'ether');
+      let correctTokens = new BigNumber(web3.toWei((10 * 1800 + 10 * 1800 * 0.4) + (20 * 1800 + 20 * 1800 * 0.2) + (5 * 1800 + 5 * 1800 * 0.05), 'ether')).toFixed();
+
+      await crowdsale.sendTransaction({
+        value: weiAmount
+      });
+
+      let tokenBalance = new BigNumber(await token.balanceOf.call(OWNER)).toFixed();
+      assert.equal(tokenBalance, correctTokens, 'wrong token amount after purchase from 0 to 2 stages');
+    });
+
+    it('validate token purchase with amount more than all goals', async () => {
+      let weiAmount = web3.toWei(75, 'ether');
+      let correctTokens = new BigNumber(web3.toWei((10 * 1800 + 10 * 1800 * 0.4) + (20 * 1800 + 20 * 1800 * 0.2) + (45 * 1800 + 45 * 1800 * 0.05), 'ether')).toFixed();
+
+      await crowdsale.sendTransaction({
+        value: weiAmount
+      });
+
+      let tokenBalance = new BigNumber(await token.balanceOf.call(OWNER)).toFixed();
+      assert.equal(tokenBalance, correctTokens, 'wrong token amount after purchase from 0 to more than all goals');
+
     });
   });
 
@@ -322,15 +364,15 @@ contract('GDPCrowdsale', (accounts) => {
       const BONUS_1 = 10;
       const BONUS_2 = 5;
 
-      await crowdsale.updateStageBonuses([BONUS_0, BONUS_1, BONUS_2]);
+      await crowdsale.updateStagesBonus([BONUS_0, BONUS_1, BONUS_2]);
 
-      let bonus0 = (await crowdsale.stageBonus.call(0)).toNumber();
+      let bonus0 = (await crowdsale.stageBonuses.call(0)).toNumber();
       await assert.equal(BONUS_0, bonus0, 'bonus for stage 0 wrong after update');
 
-      let bonus1 = (await crowdsale.stageBonus.call(1)).toNumber();
+      let bonus1 = (await crowdsale.stageBonuses.call(1)).toNumber();
       await assert.equal(BONUS_1, bonus1, 'bonus for stage 2 wrong after update');
 
-      let bonus2 = (await crowdsale.stageBonus.call(2)).toNumber();
+      let bonus2 = (await crowdsale.stageBonuses.call(2)).toNumber();
       await assert.equal(BONUS_2, bonus2, 'bonus for stage 2 wrong after update');
     });
 
@@ -339,15 +381,15 @@ contract('GDPCrowdsale', (accounts) => {
       const BONUS_1 = 10;
       const BONUS_2 = 5;
 
-      await crowdsale.updateStageBonuses([BONUS_0, BONUS_1, BONUS_2]);
+      await crowdsale.updateStagesBonus([BONUS_0, BONUS_1, BONUS_2]);
 
       await crowdsale.sendTransaction({
         from: ACC_1,
         value: ACC_1_WEI_SENT
       });
 
-      let basicRate = (await crowdsale.basicRate.call()).toNumber();
-      let basicAmount = ACC_1_WEI_SENT * basicRate;
+      let rate = (await crowdsale.rate.call()).toNumber();
+      let basicAmount = ACC_1_WEI_SENT * rate;
       let bonus = (await crowdsale.currentStageBonus.call()).toNumber();
       let bonusAmount = basicAmount * bonus / 100;
       let tokensCorrect = basicAmount + bonusAmount;
@@ -357,36 +399,51 @@ contract('GDPCrowdsale', (accounts) => {
   });
 
   describe('stage timing update', () => {
-    it('should validate start & end times update', async () => {
-      //  create new times
+    it('should validate start & end time update', async () => {
       let latestTime = LatestTime.latestTime();
-      let startTimesUpdated = [latestTime + 100, latestTime + 200, latestTime + 300, latestTime + 400];
-      let endTimesUpdated = [latestTime + 199, latestTime + 299, latestTime + 399, latestTime + 499];
+      let openUp = latestTime + IncreaseTime.duration.days(3);
+      let closeUp = openUp + IncreaseTime.duration.days(2);
 
-      await crowdsale.updateCrowdsaleStages(startTimesUpdated, endTimesUpdated);
+      await crowdsale.updateOpeningTime(openUp);
+      await crowdsale.updateClosingTime(closeUp);
+
+      let open = new BigNumber(await crowdsale.openingTime.call()).toFixed();
+      assert.equal(open, openUp, 'opening time is wrong after update');
+
+      let close = new BigNumber(await crowdsale.closingTime.call()).toFixed();
+      assert.equal(close, closeUp, 'closing time is wrong after update');
+    });
+  });
+
+  describe('bonuses', () => {
+    it('validate current bonus', async () => {
+      //  0
+      let currentBonus = new BigNumber(await crowdsale.currentStageBonus.call()).toFixed();
+      assert.equal(currentBonus, new BigNumber(await crowdsale.stageBonuses.call(0)).toFixed(), 'wrong bonus for 0 stage');
 
       //  1
-      let stage1_start_updated = new BigNumber(await crowdsale.startTimes.call(1)).toFixed();
-      assert.equal(stage1_start_updated, startTimesUpdated[1], 'stage 1 start was not updated properly');
+      await crowdsale.sendTransaction({
+        value: new BigNumber(await crowdsale.stageGoals.call(0)).toFixed()
+      });
+
+      currentBonus = new BigNumber(await crowdsale.currentStageBonus.call()).toFixed();
+      assert.equal(currentBonus, new BigNumber(await crowdsale.stageBonuses.call(1)).toFixed(), 'wrong bonus for 1 stage');
 
       //  2
-      let stage1_end_updated = new BigNumber(await crowdsale.endTimes.call(1)).toFixed();
-      assert.equal(stage1_end_updated, endTimesUpdated[1], 'stage 1 end was not updated properly');
+      let diff = new BigNumber(await crowdsale.stageGoals.call(1)).minus(new BigNumber(await crowdsale.stageGoals.call(0)).toFixed());
 
-      //  3
-      let stage3_start_updated = new BigNumber(await crowdsale.startTimes.call(3)).toFixed();
-      assert.equal(stage3_start_updated, startTimesUpdated[3], 'stage 3 was not updated properly');
-    });
+      await crowdsale.sendTransaction({
+        value: diff
+      });
+      currentBonus = new BigNumber(await crowdsale.currentStageBonus.call()).toFixed();
+      assert.equal(currentBonus, new BigNumber(await crowdsale.stageBonuses.call(2)).toFixed(), 'wrong bonus for 2 stage');
 
-    it('should validate finish time update', async () => {
-      let stagesCount = (await crowdsale.stagesCount.call()).toNumber();
-      let currentFinishTime = (await crowdsale.endTimes.call(stagesCount - 1)).toNumber();
-
-      let updatedFinishTime = currentFinishTime + 2000;
-      await crowdsale.updateCrowdsaleFinishTime(updatedFinishTime);
-
-      let finishTimeAfterUpdate = (await crowdsale.endTimes.call(stagesCount - 1)).toNumber();
-      assert.equal(finishTimeAfterUpdate, updatedFinishTime, 'crowdsale finish time is wrond after update');
+      //  above last stage goal
+      await crowdsale.sendTransaction({
+        value: web3.toWei(20, 'ether')
+      });
+      currentBonus = new BigNumber(await crowdsale.currentStageBonus.call()).toFixed();
+      assert.equal(currentBonus, new BigNumber(await crowdsale.stageBonuses.call(2)).toFixed(), 'wrong bonus for above all stages');
     });
   });
 
@@ -395,20 +452,10 @@ contract('GDPCrowdsale', (accounts) => {
    */
   describe('validate ICO stages', () => {
     it('can\'t buy tokens before ICO starts', async () => {
-      //  TODO: move to separate file (2 places): here and migration file
-      const BASIC_RATE = 1800;
-      const BONUSES = [40]; //  in %
-      const STAGE_LENGTH = IncreaseTime.duration.days(2);
-      const WALLET = accounts[0];
-      const SOFT_CAP = 1000;
-
-      let latestTime = LatestTime.latestTime();
-
-      let startTimes = [latestTime + STAGE_LENGTH];
-      let endTimes = [startTimes[0] + STAGE_LENGTH];
+      let crowdsaleMock = CrowdsaleMock.crowdsaleMock();
 
       let localToken = await GDPToken.new();
-      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, WALLET, SOFT_CAP, localToken.address);
+      let localCrowdsale = await GDPCrowdsale.new(crowdsaleMock.start, crowdsaleMock.end, crowdsaleMock.rate, crowdsaleMock.stageGoals, crowdsaleMock.bonuses, crowdsaleMock.wallet, crowdsaleMock.softCap, localToken.address);
       await localToken.transferOwnership(localCrowdsale.address);
 
       await asserts.throws(localCrowdsale.sendTransaction({
@@ -416,178 +463,103 @@ contract('GDPCrowdsale', (accounts) => {
       }), 'should not allow to buy before ICO has started');
     });
 
-    it('validate first stage', async () => {
-      //  1
-      await crowdsale.sendTransaction({
-        from: ACC_1,
-        value: ACC_1_WEI_SENT
-      });
+    // it('IMPORTANT: should be last test - should validate, crowdsale finish', async () => {
+    //   await crowdsale.sendTransaction({
+    //     from: ACC_1,
+    //     value: ACC_1_WEI_SENT
+    //   });
 
-      let basicRate = (await crowdsale.basicRate.call()).toNumber();
-      let basicAmount = ACC_1_WEI_SENT * basicRate;
-      let bonus = (await crowdsale.currentStageBonus.call()).toNumber();
-      let bonusAmount = basicAmount * bonus / 100;
-      let tokensCorrect = basicAmount + bonusAmount;
-      let tokens = (await token.balanceOf.call(ACC_1)).toNumber();
-      assert.equal(tokens, tokensCorrect, 'wrong token amount bought during first stage');
-      assert.equal((await crowdsale.weiRaised.call()).toNumber(), ACC_1_WEI_SENT, 'wrong weiRaised amount after ACC_1 purchase');
+    //   await IncreaseTime.increaseTimeWith(IncreaseTime.duration.weeks(10));
 
-      //  2
-      await crowdsale.sendTransaction({
-        from: ACC_2,
-        value: ACC_2_WEI_SENT
-      });
-      let correctWeiRaised = parseInt(ACC_1_WEI_SENT) + parseInt(ACC_2_WEI_SENT);
-      let weiRaisedResult = (await crowdsale.weiRaised.call()).toNumber();
-      assert.equal(weiRaisedResult, correctWeiRaised, 'wrong weiRaised amount ACC_1 + ACC_2');
-    });
+    //   //  1 - can not forward funds
+    //   await asserts.throws(crowdsale.forwardFundsToWallet(), 'tokens can not be transfered to walled if ICO was unsuccessfull');
 
-    it('validate last stage', async () => {
-      let stageCount = await crowdsale.stagesCount.call();
-      assert.isAtLeast(stageCount, 1, 'there should be at least 1 ICO stage');
+    //   //  2 - can not purchase
+    //   await asserts.throws(crowdsale.sendTransaction({
+    //     from: ACC_1,
+    //     value: ACC_1_WEI_SENT
+    //   }), 'should not allow purchase after ICO finished');
 
-      let stageIdx = stageCount - 1;
-      let startTime = (await crowdsale.startTimes.call(stageIdx)).toNumber();
-      // console.log('now:   ', web3.eth.getBlock('latest').timestamp);
-      await IncreaseTime.increaseTimeTo(startTime);
-      // console.log('now 2:   ', web3.eth.getBlock('latest').timestamp);
+    //   //  3 - check vault
+    //   let vaultAddr = await crowdsale.vault();
+    //   let vault = await RefundVault.at(vaultAddr);
+    //   assert.isTrue(await crowdsale.hasEnded.call(), 'crowdsale should be ended before check');
+    //   assert.isFalse(await crowdsale.goalReached.call(), 'goal should not be reached');
 
-      await crowdsale.sendTransaction({
-        from: ACC_1,
-        value: ACC_1_WEI_SENT
-      });
+    //   //  4 - claim refund
+    //   let acc1BalanceBefore = (await web3.eth.getBalance(ACC_1)).toNumber();
+    //   assert.equal(new BigNumber(await vault.deposited.call(ACC_1)).toFixed(), ACC_1_WEI_SENT, 'wrong vault deposit for ACC_1 before refund');
 
-      let basicRate = (await crowdsale.basicRate.call()).toNumber();
-      let basicAmount = ACC_1_WEI_SENT * basicRate;
-      let bonus = (await crowdsale.currentStageBonus.call()).toNumber();
-      let bonusAmount = basicAmount * bonus / 100;
-      let tokensCorrect = basicAmount + bonusAmount;
-      let tokens = (await token.balanceOf.call(ACC_1)).toNumber();
+    //   await crowdsale.claimRefund({
+    //     from: ACC_1
+    //   });
+    //   let acc1BalanceAfter = (await web3.eth.getBalance(ACC_1)).toNumber();
+    //   assert.isAbove(acc1BalanceAfter, acc1BalanceBefore, 'balance after refund must be more, then before');
+    //   assert.equal((await vault.deposited.call(ACC_1)).toNumber(), 0, 'wrong vault deposit for ACC_1 after refund');
 
-      assert.equal(tokens, tokensCorrect, 'wrong token amount bought during first stage');
-      assert.equal((await crowdsale.weiRaised.call()).toNumber(), ACC_1_WEI_SENT, 'wrong weiRaised amount after ACC_1 purchase');
-    });
+    //   //  5 - claim refund again
+    //   await asserts.throws(crowdsale.claimRefund({
+    //     from: ACC_1
+    //   }), 'refund can not be claimed multiple times');
 
-    it('IMPORTANT: should be last test - should validate, crowdsale finish', async () => {
-      await crowdsale.sendTransaction({
-        from: ACC_1,
-        value: ACC_1_WEI_SENT
-      });
+    //   //  6 - tokens are burned
+    //   await assert.equal(0, new BigNumber(await token.balanceOf.call(crowdsale.address)).toFixed(), 'tokens should be burned');
 
-      await IncreaseTime.increaseTimeWith(IncreaseTime.duration.days(10));
-
-      //  1 - can not forward funds
-      await asserts.throws(crowdsale.forwardFundsToWallet(), 'tokens can not be transfered to walled if ICO was unsuccessfull');
-
-      //  2 - can not purchase
-      await asserts.throws(crowdsale.sendTransaction({
-        from: ACC_1,
-        value: ACC_1_WEI_SENT
-      }), 'should not allow purchase after ICO finished');
-
-      //  3 - check vault
-      let vaultAddr = await crowdsale.vault();
-      let vault = await RefundVault.at(vaultAddr);
-      assert.isTrue(await crowdsale.hasEnded.call(), 'crowdsale should be ended before check');
-      assert.isFalse(await crowdsale.goalReached.call(), 'goal should not be reached');
-
-      //  4 - claim refund
-      let acc1BalanceBefore = (await web3.eth.getBalance(ACC_1)).toNumber();
-      assert.equal(new BigNumber(await vault.deposited.call(ACC_1)).toFixed(), ACC_1_WEI_SENT, 'wrong vault deposit for ACC_1 before refund');
-
-      await crowdsale.claimRefund({
-        from: ACC_1
-      });
-      let acc1BalanceAfter = (await web3.eth.getBalance(ACC_1)).toNumber();
-      assert.isAbove(acc1BalanceAfter, acc1BalanceBefore, 'balance after refund must be more, then before');
-      assert.equal((await vault.deposited.call(ACC_1)).toNumber(), 0, 'wrong vault deposit for ACC_1 after refund');
-
-      //  5 - claim refund again
-      await asserts.throws(crowdsale.claimRefund({
-        from: ACC_1
-      }), 'refund can not be claimed multiple times');
-
-      //  6 - tokens are burned
-      await assert.equal(0, new BigNumber(await token.balanceOf.call(crowdsale.address)).toFixed(), 'tokens should be burned');
-
-    });
+    // });
   });
 
-  describe('local crowdsales created', () => {
-    it('validate goal is being reached', async () => {
-      const BASIC_RATE = 1800;
-      const BONUSES = [40]; //  in %
-      const STAGE_LENGTH = IncreaseTime.duration.days(2);
-      const WALLET = accounts[0];
-      const SOFT_CAP = 10;
+  describe('create local crowdsales for tests', () => {
+    // it('validate goal is being reached', async () => {
+    //   let crowdsaleMock = CrowdsaleMock.crowdsaleMock();
 
-      let latestTime = LatestTime.latestTime();
+    //   let localToken = await GDPToken.new();
+    //   let localCrowdsale = await GDPCrowdsale.new(crowdsaleMock.start, crowdsaleMock.end, crowdsaleMock.rate, crowdsaleMock.stageGoals, crowdsaleMock.bonuses, crowdsaleMock.wallet, crowdsaleMock.softCap, localToken.address);
+    //   await localToken.transferOwnership(localCrowdsale.address);
 
-      let startTimes = [latestTime + 11111111];
-      let endTimes = [startTimes[0] + STAGE_LENGTH];
+    //   await IncreaseTime.increaseTimeTo(crowdsaleMock.start + 1);
 
-      let localToken = await GDPToken.new();
-      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, WALLET, SOFT_CAP, localToken.address);
-      await localToken.transferOwnership(localCrowdsale.address);
+    //   await localCrowdsale.sendTransaction({
+    //     from: ACC_1,
+    //     value: web3.toWei(crowdsaleMock.softCap, 'ether')
+    //   });
 
-      await IncreaseTime.increaseTimeTo(startTimes[0] + 1);
+    //   await IncreaseTime.increaseTimeWith(IncreaseTime.duration.days(3));
 
-      await localCrowdsale.sendTransaction({
-        from: ACC_1,
-        value: web3.toWei(SOFT_CAP, 'ether')
-      });
+    //   //  1
+    //   let vaultAddr = await localCrowdsale.vault();
+    //   let vault = await RefundVault.at(vaultAddr);
+    //   assert.isTrue(await localCrowdsale.hasEnded.call(), 'localCrowdsale should be ended before check');
+    //   assert.isTrue(await localCrowdsale.goalReached.call(), 'goal should not be reached');
 
-      await IncreaseTime.increaseTimeWith(IncreaseTime.duration.days(3));
+    //   //  2
+    //   await asserts.throws(localCrowdsale.claimRefund({
+    //     from: ACC_1
+    //   }), 'refund can not be claimed if ICO was successfull');
 
-      //  1
-      let vaultAddr = await localCrowdsale.vault();
-      let vault = await RefundVault.at(vaultAddr);
-      assert.isTrue(await localCrowdsale.hasEnded.call(), 'localCrowdsale should be ended before check');
-      assert.isTrue(await localCrowdsale.goalReached.call(), 'goal should not be reached');
+    //   //  3
+    //   await asserts.throws(crowdsale.forwardFundsToWallet({
+    //     from: ACC_1
+    //   }), 'tokens should be transfered to walled by owner only');
 
-      //  2
-      await asserts.throws(crowdsale.claimRefund({
-        from: ACC_1
-      }), 'refund can not be claimed if ICO was successfull');
-
-      //  3
-      await asserts.throws(crowdsale.forwardFundsToWallet({
-        from: ACC_1
-      }), 'tokens shoould be transfered to walled by owner only');
-
-      //  4
-      await asserts.throws(crowdsale.forwardFundsToWallet(), 'tokens shoould be transfered to walled if ICO was successfull');
-    });
+    //   //  4
+    //   await asserts.throws(crowdsale.forwardFundsToWallet(), 'tokens shoould be transfered to walled if ICO was successfull');
+    // });
 
     it('validate user can\'t purchace more, than limit', async () => {
-      //  TODO: move to separate file: here and migration file
-      const BASIC_RATE = 10000000;
-      const BONUSES = [0]; //  in %
-      const STAGE_LENGTH = IncreaseTime.duration.days(2);
-      const WALLET = accounts[0];
-      const SOFT_CAP = 10;
-
-      let latestTime = LatestTime.latestTime() + 111111111;
-
-      let startTimes = [latestTime + STAGE_LENGTH];
-      let endTimes = [startTimes[0] + STAGE_LENGTH];
+      let crowdsaleMock = CrowdsaleMock.crowdsaleMock();
 
       let localToken = await GDPToken.new();
-      let localCrowdsale = await GDPCrowdsale.new(startTimes, endTimes, BASIC_RATE, BONUSES, WALLET, SOFT_CAP, localToken.address);
+      let localCrowdsale = await GDPCrowdsale.new(crowdsaleMock.start, crowdsaleMock.end, 10000000, [30], [0], crowdsaleMock.wallet, crowdsaleMock.softCap, localToken.address);
       await localToken.transferOwnership(localCrowdsale.address);
 
-      let purchaseLimit = new BigNumber(await localCrowdsale.icoTokensReserved.call()).toFixed();
-      let limitHalf = new BigNumber(purchaseLimit / 2).toFixed();
-      let halfPrice = limitHalf / BASIC_RATE;
+      let purchaseLimit = new BigNumber(await localCrowdsale.icoTokensReserved.call());
+      let rate = new BigNumber(await localCrowdsale.rate.call());
+      let price = new BigNumber(purchaseLimit.div(rate)).toFixed();
 
-      await IncreaseTime.increaseTimeTo(startTimes[0] + 1);
-
-      await localCrowdsale.sendTransaction({
-        value: halfPrice
-      });
+      await IncreaseTime.increaseTimeTo(crowdsaleMock.start + 1);
 
       await localCrowdsale.sendTransaction({
-        value: halfPrice
+        value: price
       });
 
       await asserts.throws(localCrowdsale.sendTransaction({

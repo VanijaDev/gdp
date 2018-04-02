@@ -2,6 +2,7 @@ pragma solidity ^0.4.19;
 
 import '../utils/RefundVault.sol';
 import './StagesCrowdsale.sol';
+import './TimedCrowdsale.sol';
 
 /**
  * @title RefundableCrowdsale
@@ -9,14 +10,11 @@ import './StagesCrowdsale.sol';
  * the possibility of users getting a refund if goal is not met.
  * Uses a RefundVault as the crowdsale's vault.
  */
-contract RefundableCrowdsale is StagesCrowdsale {
+contract RefundableCrowdsale is TimedCrowdsale, StagesCrowdsale {
   using SafeMath for uint256;
 
   // minimum amount of funds to be raised in weis
   uint256 public goal;
-
-  // amount of raised money in wei
-  uint256 public weiRaised;
 
   // refund vault used to hold funds while crowdsale is running
   RefundVault public vault;
@@ -25,8 +23,9 @@ contract RefundableCrowdsale is StagesCrowdsale {
    * @dev Constructor, creates RefundVault. 
    * @param _goal Funding goal
    */
-  function RefundableCrowdsale(address _wallet, uint256 _goal, uint256[] _startTimes, uint256[] _endTimes, uint256 _basicRate, uint256[] _stageBonus)
-    StagesCrowdsale(_startTimes, _endTimes, _basicRate, _stageBonus) public {
+  function RefundableCrowdsale(address _wallet, uint256 _goal, uint256 _openingTime, uint256 _closingTime, uint256 _basicRate, uint256[] _stageGoals, uint256[] _stageBonuses)
+    TimedCrowdsale(_openingTime, _closingTime)
+    StagesCrowdsale(_basicRate, _stageGoals, _stageBonuses) public {
       require(_goal > 0);
 
       goal = _goal * uint(10)**18;  //  convert to wei
@@ -62,9 +61,6 @@ contract RefundableCrowdsale is StagesCrowdsale {
     return weiRaised >= goal;
   }
 
-  /**
-   * @dev Overrides Crowdsale fund forwarding, sending funds to vault.
-   */
   function forwardFunds() public payable {
     weiRaised = weiRaised.add(msg.value);    
     vault.deposit.value(msg.value)(msg.sender);
