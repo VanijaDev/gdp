@@ -181,7 +181,7 @@ contract('GDPCrowdsale', (accounts) => {
       assert.equal(weiRaisedResult, correctWeiRaised, 'wrong weiRaised amount after ACC_2 purchase');
     });
 
-    it.only('validate token amount bought for eth', async () => {
+    it('validate token amount bought for eth', async () => {
       //  [40, 30, 20, 10, 5]     [2, 5, 5, 5, 5]
 
       //  1
@@ -262,7 +262,51 @@ contract('GDPCrowdsale', (accounts) => {
       assert.equal(tokens.toFixed(), tokensCorrect.toFixed(), 'wrong token amount for ACC_1 after third purchase');
     });
 
-    it('validate amount of tokens substracted from crowdsale balance', async () => {
+    it('should validate token purchase with 1 wei', async () => {
+      await crowdsale.sendTransaction({
+        from: ACC_1,
+        value: 1
+      });
+
+      let rate = new BigNumber(await crowdsale.rate.call()).toFixed();
+      let basicAmount = new BigNumber(parseInt(1) * parseInt(rate));
+
+      let bonus = new BigNumber(40);
+      let bonusAmount = basicAmount / 100 * bonus;
+
+      let tokensCorrect = new BigNumber(basicAmount).plus(bonusAmount);
+      let tokens = new BigNumber(await token.balanceOf.call(ACC_1));
+      assert.equal(tokens.toFixed(), tokensCorrect.toFixed(), 'wrong token amount for 1 wei');
+
+    });
+
+    it.only('should validate token purchase with amount more than all stage goals', async () => {
+      await crowdsale.sendTransaction({
+        from: ACC_1,
+        value: new BigNumber(web3.toWei(25, 'ether')).toFixed()
+      });
+
+      let rate = new BigNumber(await crowdsale.rate.call()).toFixed();
+      let basicAmount_0 = new BigNumber(web3.toWei(2, 'ether') * parseInt(rate));
+      let basicAmount_1 = new BigNumber(web3.toWei(5, 'ether') * parseInt(rate));
+      let basicAmount_2 = new BigNumber(web3.toWei(5, 'ether') * parseInt(rate));
+      let basicAmount_3 = new BigNumber(web3.toWei(5, 'ether') * parseInt(rate));
+      let basicAmount_4 = new BigNumber(web3.toWei(5, 'ether') * parseInt(rate));
+      let basicAmount_5 = new BigNumber(web3.toWei(3, 'ether') * parseInt(rate));
+
+      let bonusAmount_0 = basicAmount_0.div(100).mul(40);
+      let bonusAmount_1 = basicAmount_1.div(100).mul(30);
+      let bonusAmount_2 = basicAmount_2.div(100).mul(20);
+      let bonusAmount_3 = basicAmount_3.div(100).mul(10);
+      let bonusAmount_4 = basicAmount_4.div(100).mul(5);
+
+      let tokensCorrect = basicAmount_0.plus(basicAmount_1).plus(basicAmount_2).plus(basicAmount_3).plus(basicAmount_4).plus(basicAmount_5).plus(bonusAmount_0).plus(bonusAmount_1).plus(bonusAmount_2).plus(bonusAmount_3).plus(bonusAmount_4);
+      let tokens = new BigNumber(await token.balanceOf.call(ACC_1));
+      console.log(tokens.toFixed(), tokensCorrect.toFixed());
+      assert.equal(tokens.toFixed(), tokensCorrect.toFixed(), 'wrong token amount if more than all stage goals');
+    });
+
+    it('should validate amount of tokens substracted from crowdsale balance', async () => {
       let icoAddress = crowdsale.address;
       let crowdsaleBalanceBefore = new BigNumber(await token.balanceOf(icoAddress));
 
@@ -275,43 +319,6 @@ contract('GDPCrowdsale', (accounts) => {
       let crowdsaleBalanceAfter = new BigNumber(await token.balanceOf(icoAddress));
 
       assert.equal(acc2Tokens.toFixed(), new BigNumber(crowdsaleBalanceBefore.minus(crowdsaleBalanceAfter)).toFixed());
-    });
-
-    it('validate token purchase with amount more than first stage goal', async () => {
-      let weiAmount = web3.toWei(11, 'ether');
-      let correctTokens = new BigNumber(web3.toWei((10 * 1700 + 10 * 1700 * 0.4) + (1 * 1700 + 1 * 1700 * 0.2), 'ether')).toFixed();
-
-      await crowdsale.sendTransaction({
-        value: weiAmount
-      });
-
-      let tokenBalance = new BigNumber(await token.balanceOf.call(OWNER)).toFixed();
-      assert.equal(tokenBalance, correctTokens, 'wrong token amount after purchase from 0 to 1 stages');
-    });
-
-    it('validate token purchase with amount more than second stage goal', async () => {
-      let weiAmount = web3.toWei(35, 'ether');
-      let correctTokens = new BigNumber(web3.toWei((10 * 1700 + 10 * 1700 * 0.4) + (20 * 1700 + 20 * 1700 * 0.2) + (5 * 1700 + 5 * 1700 * 0.05), 'ether')).toFixed();
-
-      await crowdsale.sendTransaction({
-        value: weiAmount
-      });
-
-      let tokenBalance = new BigNumber(await token.balanceOf.call(OWNER)).toFixed();
-      assert.equal(tokenBalance, correctTokens, 'wrong token amount after purchase from 0 to 2 stages');
-    });
-
-    it('validate token purchase with amount more than all goals', async () => {
-      let weiAmount = web3.toWei(75, 'ether');
-      let correctTokens = new BigNumber(web3.toWei((10 * 1700 + 10 * 1700 * 0.4) + (20 * 1700 + 20 * 1700 * 0.2) + (45 * 1700 + 45 * 1700 * 0.05), 'ether')).toFixed();
-
-      await crowdsale.sendTransaction({
-        value: weiAmount
-      });
-
-      let tokenBalance = new BigNumber(await token.balanceOf.call(OWNER)).toFixed();
-      assert.equal(tokenBalance, correctTokens, 'wrong token amount after purchase from 0 to more than all goals');
-
     });
   });
 
