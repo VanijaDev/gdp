@@ -26,7 +26,7 @@ contract StagesCrowdsale is Ownable {
   /**
    * @dev Returns token count for provided wei amount. Takes in count stage goals.
    */
-  function tokenAmount(uint256 _weiAmount) public returns(uint256) {
+  function tokenAmount(uint256 _weiAmount) internal returns(uint256) {
     bool stageFound;
     uint256 stageIdxCurrent;
     (stageFound, stageIdxCurrent) = currentStageIndex();
