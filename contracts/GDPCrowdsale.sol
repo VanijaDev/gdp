@@ -8,38 +8,44 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
 
   using SafeMath for uint256;
 
-  uint8 public constant icoTokensReservedPercent = 65;  //  maximum token amout to be sold during the ICO (in %)
+  uint8 public constant icoTokensReservedPercent = 85;  //  maximum token amout to be sold during the ICO (in %)
   uint256 public icoTokensReserved; //  maximum token amout to be sold during the ICO
   uint256 public icoTokensSold; //  token amout, sold during the ICO
-  uint256 public manualTokensTransferReserved; //  maximum token amout to be manually minted
-  uint256 public manualTokensTransferred; //  token amout, manually minted
+
+  address public wallet;  //  wallet for ETH while ico
   
   // The token being sold
   GDPToken public token;
+
+  modifier validTransfer(address _beneficiary, uint256 _amount) {
+    require(_beneficiary != address(0));
+    require(_amount > 0);
+    _;
+  }
 
   /**
    *  EVENTS
    */
 
   /**
-   * event for token purchase logging
+   * @dev event for token purchase logging
    * @param purchaser who paid for the tokens
    * @param beneficiary who got the tokens
    * @param value weis paid for purchase
    * @param amount amount of tokens purchased
    */
-   // TODO: uptade to styleguides
   event TokenPurchase(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
   event ManualTransfer(address indexed from, address indexed to, uint256 amount);
 
-  function GDPCrowdsale(uint256 _openingTime, uint256 _closingTime, uint256 _basicRate, uint256[] _stageGoals, uint256[] _stageBonuses, address _wallet, uint256 _goal, address _tokenAddress)
-    RefundableCrowdsale(_wallet, _goal, _openingTime, _closingTime, _basicRate, _stageGoals, _stageBonuses) public {
+  function GDPCrowdsale(uint256 _openingTime, uint256 _closingTime, uint256 _basicRate, uint256[] _stageGoals, uint256[] _stageBonuses, address _wallet, uint256 _softCap, uint256 _hardCap, address _tokenAddress)
+    RefundableCrowdsale(_softCap, _hardCap, _openingTime, _closingTime, _basicRate, _stageGoals, _stageBonuses) public {
       require(_tokenAddress != address(0));
+      require(_wallet != address(0));
 
       token = GDPToken(_tokenAddress);
 
+      wallet = _wallet;
       icoTokensReserved = token.totalSupply().div(100).mul(icoTokensReservedPercent);
-      manualTokensTransferReserved = token.totalSupply().sub(icoTokensReserved);
   }
 
   /**
@@ -68,45 +74,30 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
   }
 
   //  owner is able to mint tokens manually
-  function manualTransfer(address _beneficiary, uint256 _amount) onlyOwner onlyWhileOpen isNotPaused public {
-    require(manualTokensTransferred.add(_amount) <= manualTokensTransferReserved);
-
-    manualTokensTransferred = manualTokensTransferred.add(_amount);
-
+  function manualTransfer(address _beneficiary, uint256 _amount) onlyOwner onlyWhileOpen isNotPaused validTransfer(_beneficiary, _amount) public {
     token.transfer(_beneficiary, _amount);
     ManualTransfer(msg.sender, _beneficiary, _amount);
   }
 
-  function validPurchase() private view returns (bool) {
-    bool nonZeroPurchase = msg.value > 0;
-
-    return nonZeroPurchase;
+  function forwardFunds() public payable {
+    wallet.transfer(msg.value);
+    super.forwardFunds();
   }
 
+  function burnTokens() public onlyOwner {
+    require(hasEnded());
 
-  /**
-    * OVERRIDEN
-   */
-
-   function claimRefund() public {
-    super.claimRefund();
-    
-    burnTokens();
-  }
-
-  function forwardFundsToWallet() public onlyOwner {
-    super.forwardFundsToWallet();
-    
-    burnTokens();
+    token.burnTokens();
   }
 
   /**
     * PRIVATE
    */
-   function burnTokens() private {
-     if(token.balanceOf(address(this)) > 0) {
-       token.burnTokens();
-     }
-   }
 
+  function validPurchase() private view returns (bool) {
+    bool nonZeroPurchase = msg.value > 0;
+    bool hardCapIsReached = hardCapReached();
+
+    return nonZeroPurchase && !hardCapIsReached;
+  }
 }

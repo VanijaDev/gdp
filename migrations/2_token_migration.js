@@ -3,20 +3,32 @@ let GDPCrowdsale = artifacts.require("./GDPCrowdsale.sol");
 let IncreaseTime = require('../test/helpers/increaseTime');
 
 module.exports = function (deployer, network, accounts) {
-    const BASIC_RATE = 1800;
-    const BONUSES = [40, 20, 5]; //  in %
-    const WALLET = accounts[0];
-    const SOFT_CAP = 50; // in ETH;
+    let BASIC_RATE = 1700;
+    let BONUSES = [40, 30, 20, 10, 5]; //  in %
+    let WALLET; //TODO: add wallet from GD
+    let SOFT_CAP = 1000; // in ETH;
+    let HARD_CAP = 35000; // in ETH;
     /**
-     * IMPORTANT: this is individual stage goal, not crowdsale parts
-     * stage 0 must gather 10 ETH before next
-     * stage 1 must gather 20 ETH before next
-     * stage 2 must gather 30 ETH before next
+     * @dev This is individual stage goals, not crowdsale parts
      */
-    const STAGE_GOALS = [10, 20, SOFT_CAP]; // in ETH
+    const STAGE_GOALS = [2000, 5000, 5000, 5000, 5000]; // in ETH
 
-    let start = 11111111111;
-    let end = 22222222;
+    let start = 000000;
+    let end = 000000;
+
+    /**
+     * TEST only
+     */
+    SOFT_CAP = 50;
+    HARD_CAP = 75;
+    STAGE_GOALS = [2, 5, 5, 5, 5];
+    WALLET = accounts[3];
+    start = 000000;
+    end = 000000;
+    /**
+     * TEST only
+     */
+
 
     if (network != 'ropsten') {
         start = web3.eth.getBlock('latest').timestamp + 1;
@@ -24,11 +36,11 @@ module.exports = function (deployer, network, accounts) {
     }
 
     console.log('\nstart, end: ', start, end);
-    console.log('BASIC_RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP:   ', BASIC_RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, '\n\n\n');
+    console.log('BASIC_RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, HARD_CAP:   ', BASIC_RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, HARD_CAP, '\n\n\n');
 
     deployer.deploy(GDPToken).then(async () => {
         let token = await GDPToken.deployed();
-        await deployer.deploy(GDPCrowdsale, start, end, BASIC_RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, token.address);
+        await deployer.deploy(GDPCrowdsale, start, end, BASIC_RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, HARD_CAP, token.address);
         let ico = await GDPCrowdsale.deployed();
 
         //  transfer ownership to crowdsale

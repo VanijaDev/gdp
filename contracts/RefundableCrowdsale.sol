@@ -13,56 +13,58 @@ import './TimedCrowdsale.sol';
 contract RefundableCrowdsale is TimedCrowdsale, StagesCrowdsale {
   using SafeMath for uint256;
 
-  // minimum amount of funds to be raised in weis
-  uint256 public goal;
+  uint256 public softCap;
+  uint256 public hardCap;
 
   // refund vault used to hold funds while crowdsale is running
   RefundVault public vault;
 
   /**
-   * @dev Constructor, creates RefundVault. 
-   * @param _goal Funding goal
+   * @dev Constructor, creates RefundVault.
    */
-  function RefundableCrowdsale(address _wallet, uint256 _goal, uint256 _openingTime, uint256 _closingTime, uint256 _basicRate, uint256[] _stageGoals, uint256[] _stageBonuses)
+  function RefundableCrowdsale(uint256 _softCap, uint256 _hardCap, uint256 _openingTime, uint256 _closingTime, uint256 _basicRate, uint256[] _stageGoals, uint256[] _stageBonuses)
     TimedCrowdsale(_openingTime, _closingTime)
     StagesCrowdsale(_basicRate, _stageGoals, _stageBonuses) public {
-      require(_goal > 0);
+      require(_softCap > 0);
+      require(_hardCap > _softCap);
 
-      goal = _goal * uint(10)**18;  //  convert to wei
+      //  convert to wei
+      softCap = _softCap * uint(10)**18;
+      hardCap = _hardCap * uint(10)**18;
 
-      vault = new RefundVault(_wallet);
+      vault = new RefundVault();
+  }
+
+  function forwardFunds() public payable {
+    weiRaised = weiRaised.add(msg.value);    
+    vault.deposit(msg.sender, msg.value);
   }
 
   /**
    * @dev Investors can claim refunds here if crowdsale is unsuccessful
    */
   function claimRefund() public {
-    require(hasEnded());
-    require(!goalReached());
+    require(refundEnabled());
 
     vault.refund(msg.sender);
   }
 
-  /**
-   * @dev Transfer funds to wallet is ICO was successfull
-  */
-  function forwardFundsToWallet() public onlyOwner {
-    require(hasEnded());
-    require(goalReached());
+  function softCapReached() public view returns (bool) {
+    return weiRaised >= softCap;
+  }
 
-    vault.moveFundsToWallet();
+  function hardCapReached() public view returns (bool) {
+    return weiRaised >= hardCap;
   }
 
   /**
-   * @dev Checks whether funding goal was reached. 
-   * @return Whether funding goal was reached
-   */
-  function goalReached() public view returns (bool) {
-    return weiRaised >= goal;
-  }
+   * @dev Check if refund can be claimed
+   */  
+   function refundEnabled() public view returns(bool) {
+     bool icoGoalReached = softCapReached();
+     bool icoTimeOver = hasEnded();
+     bool vaultHasBalance = address(vault).balance > 0;
 
-  function forwardFunds() public payable {
-    weiRaised = weiRaised.add(msg.value);    
-    vault.deposit.value(msg.value)(msg.sender);
-  }
+     return !icoGoalReached && icoTimeOver && vaultHasBalance;
+   }
 }

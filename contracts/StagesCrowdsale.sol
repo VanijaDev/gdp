@@ -13,6 +13,7 @@ contract StagesCrowdsale is Ownable {
   //  maximum wei amount for each stage
   uint256[] public stageGoals;
   uint256[] public stageBonuses;
+  mapping (uint256 => uint256) private raisedInStages;
 
   function StagesCrowdsale(uint256 _rate, uint256[] _stageGoals, uint256[] _stageBonuses) public {
     require(_rate > 0);
@@ -25,9 +26,10 @@ contract StagesCrowdsale is Ownable {
   /**
    * @dev Returns token count for provided wei amount. Takes in count stage goals.
    */
-  function tokenAmount(uint256 _weiAmount) public view returns(uint256) {
+  function tokenAmount(uint256 _weiAmount) public returns(uint256) {
+    bool stageFound;
     uint256 stageIdxCurrent;
-    (, stageIdxCurrent) = currentStageIndex();
+    (stageFound, stageIdxCurrent) = currentStageIndex();
     uint256 stageCount = stagesCount();
     
     uint256 basicAmount;
@@ -36,45 +38,33 @@ contract StagesCrowdsale is Ownable {
     uint256 totalAmount;
     uint256 weiToAdd = _weiAmount;
     
-    //  use last bonus if over last limit
-    if(stageIdxCurrent == stageCount - 1) {
-        basicAmount = weiToAdd.mul(rate);
-        bonus = stageBonuses[stageIdxCurrent];
+    if(!stageFound) {
+        return weiToAdd.mul(rate);
+    }
+    
+    uint256 result;
+    
+    for(uint256 i = stageIdxCurrent; i < stageCount; i ++) {
+        uint256 stageWeiToAddMax = stageGoals[i] - raisedInStages[i];
+        uint256 stageWeiToAdd = (weiToAdd < stageWeiToAddMax) ? weiToAdd : stageWeiToAddMax;
+        
+        basicAmount = stageWeiToAdd.mul(rate); 
+        bonus = stageBonuses[i];
         bonusAmount = basicAmount.div(100).mul(bonus);
         totalAmount = basicAmount + bonusAmount;
-        return totalAmount;
-    }
-    
-    uint256 weiRaisedLocal = weiRaised;
-    uint256 result;
-
-    for(uint256 i = stageIdxCurrent; i < stageCount; i ++) {
-      uint256 stageGoal = stageGoals[i];
-      
-      uint256 stageWeiToAddLimit = (i == stageIdxCurrent) ? stageGoal - weiRaisedLocal : stageGoals[i];      
-      uint256 stageWeiToAdd = (stageWeiToAddLimit < weiToAdd) ? stageWeiToAddLimit : weiToAdd;
-
-      basicAmount = stageWeiToAdd.mul(rate);
-      bonus = stageBonuses[i];
-      bonusAmount = basicAmount.div(100).mul(bonus);
-      totalAmount = basicAmount + bonusAmount;
-
-      result = result.add(totalAmount);
-      
-      weiRaisedLocal = weiRaisedLocal.add(stageWeiToAdd);
-      weiToAdd = weiToAdd.sub(stageWeiToAdd);
-      
-      if(weiToAdd == 0) {
+        result = result.add(totalAmount);
+        
+        weiToAdd = weiToAdd.sub(stageWeiToAdd);
+        raisedInStages[i] = raisedInStages[i].add(stageWeiToAdd);
+        
+        if(weiToAdd == 0) {
           return result;
-      }
+        }
     }
     
-    //  if here, wei amount started in stage, but is more that last goal. Calculate tokens as for last stage.
+    //  if here, wei amount started in stage, but is more that last goal. Calculate tokens just for base rate.
     basicAmount = weiToAdd.mul(rate);
-    bonus = stageBonuses[stageCount - 1];
-    bonusAmount = basicAmount.div(100).mul(bonus);
-    totalAmount = basicAmount + bonusAmount;
-    result = result.add(totalAmount);
+    result = result.add(basicAmount);
     
     return result;
   }
@@ -99,10 +89,14 @@ contract StagesCrowdsale is Ownable {
    */
   function stageForAmount(uint256 _weiAmount, uint256[] _stageGoals) private pure returns (bool, uint256) {
     uint256 length = _stageGoals.length;
+    uint256 goalSum;
+    
     for(uint256 i = 0; i < length; i ++) {
-      if(_weiAmount < _stageGoals[i]) {
-        return(true, i);
-      }
+        goalSum += _stageGoals[i];
+        
+        if(_weiAmount < goalSum) {
+            return(true, i);
+        }
     }
     
     return(false, length - 1);
@@ -143,13 +137,8 @@ contract StagesCrowdsale is Ownable {
     uint256[] memory result = new uint[](length);
     
     for(uint256 i = 0; i < length; i ++) {
-        uint256 goal = _stageGoals[i];
-      require(goal > 0);
-
-      if(i > 0) {
-        require(goal > _stageGoals[i - 1]);
-      }
-      
+      uint256 goal = _stageGoals[i];
+      require(goal > 0);      
       result[i] = goal.mul(uint(10)**18);
     }
     

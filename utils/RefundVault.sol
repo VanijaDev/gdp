@@ -20,34 +20,25 @@ contract RefundVault is Ownable {
   event FundsTransferredtoWallet();
 
   /**
-   * @param _wallet Vault address
+   * @param _investor Investor address
    */
-  function RefundVault(address _wallet) public {
-    require(_wallet != address(0));
-    wallet = _wallet;
+  function deposit(address _investor, uint256 _amount) onlyOwner public payable {
+    require(_investor != address(0));
+
+    deposited[_investor] = deposited[_investor].add(_amount);
   }
 
   /**
-   * @param investor Investor address
+   * @param _investor Investor address
    */
-  function deposit(address investor) onlyOwner public payable {
-    deposited[investor] = deposited[investor].add(msg.value);
-  }
+  function refund(address _investor) public onlyOwner {
+    require(address(this).balance > 0);
 
-  function moveFundsToWallet() public onlyOwner {
-    wallet.transfer(this.balance);
-    FundsTransferredtoWallet();
-  }
-
-  /**
-   * @param investor Investor address
-   */
-  function refund(address investor) public onlyOwner {
-    uint256 depositedValue = deposited[investor];
+    uint256 depositedValue = deposited[_investor];
     require(depositedValue > 0);
     
-    deposited[investor] = 0;
-    investor.transfer(depositedValue);
-    Refunded(investor, depositedValue);
+    deposited[_investor] = 0;
+    _investor.transfer(depositedValue);
+    Refunded(_investor, depositedValue);
   }
 }
