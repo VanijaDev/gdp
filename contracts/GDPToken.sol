@@ -5,15 +5,15 @@ import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
 import '../node_modules/zeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
 
 contract GDPToken is Ownable, StandardToken {
-
   using SafeMath for uint256;
 
+  uint256 private constant maxAmountInETH = 100000000;
   string public constant name = "GOODS DIGITAL PASSPORT";
   string public constant symbol = "GDP";
   uint8 public constant decimals = 18;
 
   function GDPToken() public {
-    totalSupply_ = uint256(100000000).mul(uint(10)**decimals);  //  100 000 000 tokens
+    totalSupply_ = maxAmountInETH.mul(uint(10)**decimals);  //  100 000 000 tokens
     balances[owner] = totalSupply_;
   }
 
