@@ -84,9 +84,6 @@ contract StagesCrowdsale is Ownable {
     return stageForAmount(weiRaised, stageGoals);
   }
 
-  /**
-   * @dev Returns whether current ICO stage was found and its index. Return last index if stage was not found.
-   */
   function stageForAmount(uint256 _weiAmount, uint256[] _stageGoals) private pure returns (bool, uint256) {
     uint256 length = _stageGoals.length;
     uint256 goalSum;
