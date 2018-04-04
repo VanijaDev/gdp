@@ -11,7 +11,7 @@ module.exports = function (deployer, network, accounts) {
     /**
      * @dev This is individual stage goals, not crowdsale parts
      */
-    const STAGE_GOALS = [2000, 5000, 5000, 5000, 5000]; // in ETH
+    let STAGE_GOALS = [2000, 5000, 5000, 5000, 5000]; // in ETH
 
     let start = 000000;
     let end = 000000;
