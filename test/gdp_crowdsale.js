@@ -40,57 +40,49 @@ contract('GDPCrowdsale', (accounts) => {
 
   afterEach('revert', reverter.revert);
 
-  describe('initial validation', () => {
+  describe('should perform initial validation', () => {
     const TOKEN_TOTAL_SUPPLY_LIMIT = 100000000 * 10 ** 18;
 
-    it('validate rate', async () => {
-      assert.equal((await crowdsale.rate.call()).toNumber(), 1700, 'wrong rate');
+    it('should validate rate', async () => {
+      assert.equal(new BigNumber(await crowdsale.rate.call()).toFixed(), 1700, 'wrong rate');
     });
 
-    it('validate ICO stages count', async () => {
-      assert.equal((await crowdsale.stagesCount.call()).toNumber(), 3, 'wrong ICO stages count');
+    it('should validate ICO stages count', async () => {
+      assert.equal(new BigNumber(await crowdsale.stagesCount.call()).toFixed(), 5, 'wrong ICO stages count');
     });
 
-    it('validate token was created', async () => {
+    it('should validate token was created', async () => {
       assert.notEqual(await crowdsale.token.call(), 0, 'token should be already created');
     });
 
-    it('validate ICO is not paused', async () => {
+    it('should validate ICO is not paused', async () => {
       assert.isFalse(await crowdsale.isPaused.call(), 'crowdsale should not be paused');
     });
 
-    it('validate ICO has not closed', async () => {
+    it('should validate ICO has not closed', async () => {
       assert.isFalse(await crowdsale.hasEnded.call(), 'crowdsale should not be closed');
     });
 
-    it('validate owner ownes total supply', async () => {
+    it('should validate owner ownes total supply', async () => {
       assert.equal(new BigNumber(await token.balanceOf.call(crowdsale.address)).toFixed(), new BigNumber(await token.totalSupply.call()).toFixed(), 'owner should own total supply');
     });
 
-    it('validate token amount for crowdsale purchases amount', async () => {
+    it('should validate token amount for crowdsale purchases amount', async () => {
       let icoPercent = await crowdsale.icoTokensReservedPercent.call();
       const reservedValidation = new BigNumber(await token.totalSupply.call() / 100 * icoPercent).toFixed();
       let reserved = new BigNumber(await crowdsale.icoTokensReserved.call()).toFixed();
       assert.equal(reserved, reservedValidation, 'wrong amount of icoTokensReserved');
     });
 
-    it('validate token amount for manual transfer', async () => {
-      let icoPercent = await crowdsale.icoTokensReservedPercent.call();
-      let manualTransferPercent = 100 - icoPercent;
-      const manualTransferValidation = new BigNumber(await token.totalSupply.call() / 100 * manualTransferPercent).toFixed();
-      let manualTransfer = new BigNumber(await crowdsale.manualTokensTransferReserved.call()).toFixed();
-      assert.equal(manualTransfer, manualTransferValidation, 'wrong amount of manual transfer');
-    });
-
-    it('validate newly created token\'s owner', async () => {
+    it('should validate newly created token\'s owner', async () => {
       assert.equal(await token.owner.call(), crowdsale.address, 'wrong token owner address');
     });
 
-    it('validate pause state', async () => {
+    it('should validate pause state', async () => {
       assert.isFalse(await crowdsale.isPaused.call(), 'should not be paused at th beginning');
     });
 
-    it('validate token limit value for ico purchase', async () => {
+    it('should validate token limit value for ico purchase', async () => {
       let totalSupply = new BigNumber(await token.totalSupply.call()).toFixed();
       let purchaseLimitInPercent = new BigNumber(await crowdsale.icoTokensReservedPercent.call()).toFixed();
       let purchaseLimit = new BigNumber(await crowdsale.icoTokensReserved.call()).toFixed();
@@ -99,7 +91,7 @@ contract('GDPCrowdsale', (accounts) => {
     });
   });
 
-  describe('pausable functional', () => {
+  describe('should validate pausable functional', () => {
     it('can be set by owner only', async () => {
       await asserts.throws(crowdsale.pauseCrowdsale.call({
         from: ACC_1
@@ -108,7 +100,7 @@ contract('GDPCrowdsale', (accounts) => {
       asserts.doesNotThrow(crowdsale.pauseCrowdsale.call(), 'owner should be able to pause');
     });
 
-    it('owner can pause and run again', async () => {
+    it('should validate owner can pause and run again', async () => {
       assert.isFalse(await crowdsale.isPaused.call(), 'should not be paused before test');
 
       let pauseTx = await crowdsale.pauseCrowdsale();
@@ -122,7 +114,7 @@ contract('GDPCrowdsale', (accounts) => {
       assert.isFalse(await crowdsale.isPaused.call(), 'should run after owner run');
     });
 
-    it('tokens can not be bought while paused', async () => {
+    it('should validate tokens can not be bought while paused', async () => {
       await crowdsale.pauseCrowdsale();
 
       //  buy tokens
@@ -136,21 +128,15 @@ contract('GDPCrowdsale', (accounts) => {
     });
   });
 
-  describe('manual transfer', () => {
-    it('let owner transfer manually', async () => {
+  describe('should validate manual transfer', () => {
+    it('should validate owner can transfer manually', async () => {
       const TOKENS = new BigNumber(web3.toWei(3, 'ether')).toFixed();
       let crowdsaleTokens = new BigNumber(await token.balanceOf.call(crowdsale.address));
 
       await asserts.doesNotThrow(crowdsale.manualTransfer(ACC_1, TOKENS));
-
-      let balance = new BigNumber(await token.balanceOf(ACC_1));
-      assert.equal(balance, TOKENS, 'wrong token amount after manual transfer');
-
-      let crowdsaleTokensAfterTransfer = new BigNumber(await token.balanceOf.call(crowdsale.address));
-      assert.equal(balance, new BigNumber(crowdsaleTokens.minus(crowdsaleTokensAfterTransfer)).toFixed(), 'wrong token amount substracted');
     });
 
-    it('do let not owner transfer manually', async () => {
+    it('should validate only owner transfer manually', async () => {
       const TOKENS = new BigNumber(web3.toWei(3, 'ether')).toFixed();
 
       await asserts.throws(crowdsale.manualTransfer(ACC_1, TOKENS, {
@@ -158,31 +144,22 @@ contract('GDPCrowdsale', (accounts) => {
       }));
     });
 
-    it('should not transfer more than manual transfer limit', async () => {
-      let manualTransferLimit = new BigNumber(await crowdsale.manualTokensTransferReserved.call()).toFixed();
-      let half = new BigNumber(manualTransferLimit / 2).toFixed();
+    it('should validate corrent token amount after owner transfered manually', async () => {
+      const TOKENS = new BigNumber(web3.toWei(3, 'ether')).toFixed();
+      let crowdsaleTokens = new BigNumber(await token.balanceOf.call(crowdsale.address));
 
-      // 1 - transfer half to ACC_1
-      await asserts.doesNotThrow(crowdsale.manualTransfer(ACC_1, half), 'manual transfer should success bacause less than limit');
-      let manuallyTransferred = new BigNumber(await crowdsale.manualTokensTransferred.call()).toFixed();
-      await assert.equal(manuallyTransferred, half, 'manually transferred amount should be equal to half');
-      let ACC_1_balance = new BigNumber(await token.balanceOf.call(ACC_1)).toFixed();
-      await assert.equal(half, ACC_1_balance, 'manually transfer amount for ACC_1 should be equal to half');
+      crowdsale.manualTransfer(ACC_1, TOKENS);
 
-      //  2 - transfer half to ACC_1
-      await asserts.doesNotThrow(crowdsale.manualTransfer(ACC_2, half), 'manual transfer should success bacause equals to limit');
-      manuallyTransferred = new BigNumber(await crowdsale.manualTokensTransferred.call()).toFixed();
-      await assert.equal(manuallyTransferred, manualTransferLimit, 'manually transferred amount should be equal to manualTransferLimit');
-      let ACC_2_balance = new BigNumber(await token.balanceOf.call(ACC_2)).toFixed();
-      await assert.equal(half, ACC_2_balance, 'manually transferred amount for ACC_2 should be equal to half');
+      let balance = new BigNumber(await token.balanceOf(ACC_1));
+      assert.equal(balance, TOKENS, 'wrong token amount after manual transfer');
 
-      //  3 - fails because limit is being reached
-      await asserts.throws(crowdsale.manualTransfer(ACC_1, half), 'manual transfer should fail bacause would be more than limit');
+      let crowdsaleTokensAfterTransfer = new BigNumber(await token.balanceOf.call(crowdsale.address));
+      assert.equal(balance, new BigNumber(crowdsaleTokens.minus(crowdsaleTokensAfterTransfer)).toFixed(), 'wrong token amount substracted');
     });
   });
 
-  describe('validate purchase', () => {
-    it('validate weiRaised value', async () => {
+  describe('should validate purchase', () => {
+    it('should validate weiRaised value', async () => {
       //  ACC_1
       await crowdsale.sendTransaction({
         from: ACC_1,
@@ -190,7 +167,7 @@ contract('GDPCrowdsale', (accounts) => {
       });
 
       let correctWeiRaised = parseInt(ACC_1_WEI_SENT);
-      let weiRaisedResult = (await crowdsale.weiRaised.call()).toNumber();
+      let weiRaisedResult = new BigNumber(await crowdsale.weiRaised.call()).toFixed();
       assert.equal(weiRaisedResult, correctWeiRaised, 'wrong weiRaised amount after ACC_1 purchase');
 
       //  ACC_1 + ACC_2
@@ -200,24 +177,28 @@ contract('GDPCrowdsale', (accounts) => {
       });
 
       correctWeiRaised = parseInt(ACC_1_WEI_SENT) + parseInt(ACC_2_WEI_SENT);
-      weiRaisedResult = (await crowdsale.weiRaised.call()).toNumber();
+      weiRaisedResult = new BigNumber(await crowdsale.weiRaised.call()).toFixed();
       assert.equal(weiRaisedResult, correctWeiRaised, 'wrong weiRaised amount after ACC_2 purchase');
     });
 
-    it('validate token amount bought for eth', async () => {
+    it.only('validate token amount bought for eth', async () => {
+      //  [40, 30, 20, 10, 5]     [2, 5, 5, 5, 5]
+
       //  1
       await crowdsale.sendTransaction({
         from: ACC_1,
         value: ACC_1_WEI_SENT
       });
 
-      let rate = (await crowdsale.rate.call()).toNumber();
-      let basicAmount = ACC_1_WEI_SENT * rate;
-      let bonus = (await crowdsale.currentStageBonus.call()).toNumber();
-      let bonusAmount = basicAmount * bonus / 100;
-      let tokensCorrect = basicAmount + bonusAmount;
-      let tokens = (await token.balanceOf.call(ACC_1)).toNumber();
-      assert.equal(tokens, tokensCorrect, 'wrong token amount for ACC_1 after purchase');
+      let rate = new BigNumber(await crowdsale.rate.call()).toFixed();
+      let basicAmount = new BigNumber(parseInt(ACC_1_WEI_SENT) * parseInt(rate));
+
+      let bonus = new BigNumber(40);
+      let bonusAmount = basicAmount / 100 * bonus;
+
+      let tokensCorrect = new BigNumber(basicAmount).plus(bonusAmount);
+      let tokens = new BigNumber(await token.balanceOf.call(ACC_1));
+      assert.equal(tokens.toFixed(), tokensCorrect.toFixed(), 'wrong token amount for ACC_1 after first purchase');
 
       //  2
       await crowdsale.sendTransaction({
@@ -225,9 +206,9 @@ contract('GDPCrowdsale', (accounts) => {
         value: ACC_1_WEI_SENT
       });
 
-      tokensCorrect = (tokensCorrect * 2);
-      tokens = (await token.balanceOf.call(ACC_1)).toNumber();
-      assert.equal(tokens, tokensCorrect, 'wrong token amount for ACC_1 after second purchase');
+      tokensCorrect = new BigNumber(tokensCorrect * parseInt(2));
+      tokens = new BigNumber(await token.balanceOf.call(ACC_1));
+      assert.equal(tokens.toFixed(), tokensCorrect.toFixed(), 'wrong token amount for ACC_1 after second purchase');
 
       //  3
       await crowdsale.sendTransaction({
@@ -235,11 +216,50 @@ contract('GDPCrowdsale', (accounts) => {
         value: ACC_2_WEI_SENT
       });
 
-      basicAmount = ACC_2_WEI_SENT * rate;
-      bonusAmount = basicAmount * bonus / 100;
-      tokensCorrect = basicAmount + bonusAmount;
-      tokens = (await token.balanceOf.call(ACC_2)).toNumber();
-      assert.equal(tokens, tokensCorrect, 'wrong token amount for ACC_2 after purchase');
+      basicAmount = new BigNumber(parseInt(ACC_2_WEI_SENT) * parseInt(rate));
+
+      bonus = new BigNumber(30);
+      bonusAmount = basicAmount / 100 * bonus;
+
+      tokensCorrect = new BigNumber(basicAmount).plus(bonusAmount);
+      tokens = new BigNumber(await token.balanceOf.call(ACC_2));
+      assert.equal(tokens.toFixed(), tokensCorrect.toFixed(), 'wrong token amount for ACC_2 after first purchase');
+
+      //  4
+      await crowdsale.sendTransaction({
+        from: ACC_2,
+        value: new BigNumber(web3.toWei(5, 'ether')).toFixed()
+      });
+
+      let basicAmount_0 = new BigNumber(web3.toWei(3, 'ether') * parseInt(rate));
+      let basicAmount_1 = new BigNumber(web3.toWei(2, 'ether') * parseInt(rate));
+
+      let bonusAmount_0 = basicAmount_0.div(100).mul(30);
+      let bonusAmount_1 = basicAmount_1.div(100).mul(20);
+
+      tokensCorrect = basicAmount_0.plus(basicAmount_1).plus(bonusAmount_0).plus(bonusAmount_1).plus(tokensCorrect);
+      tokens = new BigNumber(await token.balanceOf.call(ACC_2));
+      assert.equal(tokens.toFixed(), tokensCorrect.toFixed(), 'wrong token amount for ACC_2 after second purchase');
+
+      //  5
+      let acc1PrevBalance = new BigNumber(await token.balanceOf.call(ACC_1));
+      await crowdsale.sendTransaction({
+        from: ACC_1,
+        value: new BigNumber(web3.toWei(20, 'ether')).toFixed()
+      });
+
+      basicAmount_0 = new BigNumber(web3.toWei(3, 'ether') * parseInt(rate));
+      basicAmount_1 = new BigNumber(web3.toWei(5, 'ether') * parseInt(rate));
+      let basicAmount_2 = new BigNumber(web3.toWei(5, 'ether') * parseInt(rate));
+      let basicAmount_3 = new BigNumber(web3.toWei(7, 'ether') * parseInt(rate));
+
+      bonusAmount_0 = basicAmount_0.div(100).mul(20);
+      bonusAmount_1 = basicAmount_1.div(100).mul(10);
+      let bonusAmount_2 = basicAmount_2.div(100).mul(5);
+
+      tokensCorrect = basicAmount_0.plus(basicAmount_1).plus(basicAmount_2).plus(basicAmount_3).plus(bonusAmount_0).plus(bonusAmount_1).plus(bonusAmount_2).plus(acc1PrevBalance);
+      tokens = new BigNumber(await token.balanceOf.call(ACC_1));
+      assert.equal(tokens.toFixed(), tokensCorrect.toFixed(), 'wrong token amount for ACC_1 after third purchase');
     });
 
     it('validate amount of tokens substracted from crowdsale balance', async () => {
