@@ -13,9 +13,6 @@ import './TimedCrowdsale.sol';
 contract RefundableCrowdsale is TimedCrowdsale, StagesCrowdsale {
   using SafeMath for uint256;
 
-  uint256 public softCap;
-  uint256 public hardCap;
-
   // refund vault used to hold funds while crowdsale is running
   RefundVault public vault;
 

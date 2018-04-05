@@ -7,6 +7,8 @@ import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
 contract StagesCrowdsale is Ownable {
   using SafeMath for uint256;
 
+  uint256 public softCap;
+  uint256 public hardCap;
   uint256 public weiRaised;
   uint256 public rate;
 
@@ -27,6 +29,8 @@ contract StagesCrowdsale is Ownable {
    * @dev Returns token count for provided wei amount. Takes in count stage goals.
    */
   function tokenAmount(uint256 _weiAmount) internal returns(uint256) {
+    require(_weiAmount <= hardCap - weiRaised);
+    
     bool stageFound;
     uint256 stageIdxCurrent;
     (stageFound, stageIdxCurrent) = currentStageIndex();
@@ -68,6 +72,10 @@ contract StagesCrowdsale is Ownable {
     
     return result;
   }
+  
+  function weiToReceiveLimit() public view returns (uint256) {
+      return hardCap - weiRaised;
+  }
 
   function stagesCount() public view returns (uint) {
     return stageGoals.length;
@@ -82,21 +90,6 @@ contract StagesCrowdsale is Ownable {
 
   function currentStageIndex() public view returns(bool found, uint256 idx) {
     return stageForAmount(weiRaised, stageGoals);
-  }
-
-  function stageForAmount(uint256 _weiAmount, uint256[] _stageGoals) private pure returns (bool, uint256) {
-    uint256 length = _stageGoals.length;
-    uint256 goalSum;
-    
-    for(uint256 i = 0; i < length; i ++) {
-        goalSum += _stageGoals[i];
-        
-        if(_weiAmount < goalSum) {
-            return(true, i);
-        }
-    }
-    
-    return(false, length - 1);
   }
 
   function currentStageBonus() public view returns(uint256) {
@@ -129,6 +122,25 @@ contract StagesCrowdsale is Ownable {
    * PRIVATE  
    */
 
+
+  /**
+   * @dev Returns whether current ICO stage was found and its index. Return last index if stage was not found.
+   */
+  function stageForAmount(uint256 _weiAmount, uint256[] _stageGoals) private pure returns (bool, uint256) {
+    uint256 length = _stageGoals.length;
+    uint256 goalSum;
+    
+    for(uint256 i = 0; i < length; i ++) {
+        goalSum += _stageGoals[i];
+        
+        if(_weiAmount < goalSum) {
+            return(true, i);
+        }
+    }
+    
+    return(false, length - 1);
+  }
+  
   function validateAndConvertStagesGoalsToWei(uint256[] _stageGoals) private pure returns (uint256[]) {
     uint256 length = _stageGoals.length;
     uint256[] memory result = new uint[](length);
