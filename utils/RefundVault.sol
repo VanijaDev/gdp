@@ -19,6 +19,8 @@ contract RefundVault is Ownable {
   event Refunded(address indexed beneficiary, uint256 weiAmount);
   event FundsTransferredtoWallet();
 
+  function() public payable {}
+
   /**
    * @param _investor Investor address
    */
