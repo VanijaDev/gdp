@@ -17,7 +17,6 @@ contract RefundVault is Ownable {
   address public wallet;
 
   event Refunded(address indexed beneficiary, uint256 weiAmount);
-  event FundsTransferredtoWallet();
 
   function() public payable {}
 
