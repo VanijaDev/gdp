@@ -31,7 +31,7 @@ module.exports = function (deployer, network, accounts) {
 
 
     if (network != 'ropsten') {
-        start = web3.eth.getBlock('latest').timestamp + 1;
+        start = web3.eth.getBlock('latest').timestamp + 10;
         end = start + IncreaseTime.duration.days(5);
     }
 
