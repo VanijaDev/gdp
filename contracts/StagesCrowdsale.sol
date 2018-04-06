@@ -99,15 +99,15 @@ contract StagesCrowdsale is Ownable {
     return stageBonuses[stageIdx];
   }
 
-  function updateStagesBonus(uint256[] _stageBonuses) public onlyOwner {
+  function updateStageBonuses(uint256[] _stageBonuses) public onlyOwner {
     stageBonuses = _stageBonuses;
   }
 
   function updateStageBonus(uint256 _stage, uint256 _stageBonus) public onlyOwner {
-    stageGoals[_stage] = _stageBonus;
+    stageBonuses[_stage] = _stageBonus;
   }
 
-  function updateStagesGoal(uint256[] _stageGoals) public onlyOwner {
+  function updateStageGoals(uint256[] _stageGoals) public onlyOwner {
     stageGoals = validateAndConvertStagesGoalsToWei(_stageGoals);
   }
 
