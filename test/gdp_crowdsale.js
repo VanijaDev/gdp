@@ -415,12 +415,12 @@ contract('GDPCrowdsale', (accounts) => {
   });
 
   describe('bonuses', () => {
-    it('validate bonus update', async () => {
+    it('validate bonuses update', async () => {
       const BONUS_0 = 80;
       const BONUS_1 = 10;
       const BONUS_2 = 5;
 
-      await crowdsale.updateStagesBonus([BONUS_0, BONUS_1, BONUS_2]);
+      await crowdsale.updateStageBonuses([BONUS_0, BONUS_1, BONUS_2]);
 
       let bonus0 = (await crowdsale.stageBonuses.call(0)).toNumber();
       await assert.equal(BONUS_0, bonus0, 'bonus for stage 0 wrong after update');
@@ -432,12 +432,21 @@ contract('GDPCrowdsale', (accounts) => {
       await assert.equal(BONUS_2, bonus2, 'bonus for stage 2 wrong after update');
     });
 
+    it('validate single stage bonus update', async () => {
+      const NEW_BONUS = 80;
+
+      await crowdsale.updateStageBonus(0, NEW_BONUS);
+
+      let bonus0 = (await crowdsale.stageBonuses.call(0)).toNumber();
+      await assert.equal(NEW_BONUS, bonus0, 'bonus for stage 0 wrong after update single stage bonus update');
+    });
+
     it('validate correct token amount on purchase', async () => {
       const BONUS_0 = 80;
       const BONUS_1 = 10;
       const BONUS_2 = 5;
 
-      await crowdsale.updateStagesBonus([BONUS_0, BONUS_1, BONUS_2]);
+      await crowdsale.updateStageBonuses([BONUS_0, BONUS_1, BONUS_2]);
 
       await crowdsale.sendTransaction({
         from: ACC_1,
