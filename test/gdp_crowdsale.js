@@ -31,7 +31,90 @@ contract('GDPCrowdsale before ICO started', (accounts) => {
     await asserts.throws(crowdsale.sendTransaction({
       from: ACC_1,
       value: ACC_1_WEI_SENT
-    }), 'purchase can not be performed, while crowdsale is paused');
+    }), 'purchase can not be performed, before crowdsale is started');
+  });
+});
+
+contract('PausableCrowdsale', (accounts) => {
+  const OWNER = accounts[0];
+
+  const ACC_1 = accounts[1];
+  const ACC_1_WEI_SENT = new BigNumber(web3.toWei(1, 'ether'));
+
+  const ACC_2 = accounts[2];
+  const ACC_2_WEI_SENT = new BigNumber(web3.toWei(2, 'ether'));
+
+  const reverter = new Reverter(web3);
+  const asserts = Asserts(assert);
+  let crowdsale;
+  let token;
+
+  before('setup', () => {
+    return GDPCrowdsale.deployed().then((inst) => {
+      crowdsale = inst;
+      return crowdsale.token.call();
+    }).then((tokenAddresss) => {
+      token = GDPToken.at(tokenAddresss);
+    }).then(() => {
+      IncreaseTime.increaseTimeWith(10);
+    }).then(reverter.snapshot);
+  });
+
+  afterEach('revert', reverter.revert);
+
+  describe('initial validation', () => {
+    it('should validate ICO is not paused', async () => {
+      assert.isFalse(await crowdsale.isPaused.call(), 'crowdsale should not be paused');
+    });
+  });
+
+  describe('should validate pausable functional', () => {
+    it('can be set by owner only', async () => {
+      await asserts.throws(crowdsale.pauseCrowdsale.call({
+        from: ACC_1
+      }), 'should fail, only owner can pause');
+
+      asserts.doesNotThrow(crowdsale.pauseCrowdsale.call(), 'owner should be able to pause');
+    });
+
+    it('should validate owner can pause and run again', async () => {
+      assert.isFalse(await crowdsale.isPaused.call(), 'should not be paused before test');
+
+      let pauseTx = await crowdsale.pauseCrowdsale();
+      let pauseLogs = pauseTx.logs;
+      assert.equal(pauseLogs[0].event, 'CrowdsalePaused', 'wrong event, when crowdsale paused');
+      assert.isTrue(await crowdsale.isPaused.call(), 'should be paused after owner paused');
+
+      let restoreTx = await crowdsale.restoreCrowdsale();
+      let RestoreLogs = restoreTx.logs;
+      assert.equal(RestoreLogs[0].event, 'CrowdsaleRestored', 'wrong event, when crowdsale restored');
+      assert.isFalse(await crowdsale.isPaused.call(), 'should run after owner run');
+    });
+
+    it('should validate tokens can not be bought while paused', async () => {
+      await crowdsale.pauseCrowdsale();
+
+      //  buy tokens
+      await asserts.throws(crowdsale.sendTransaction({
+        from: ACC_1,
+        value: ACC_1_WEI_SENT
+      }), 'purchase can not be performed, while crowdsale is paused');
+
+      //  manual transfer
+      await asserts.throws(crowdsale.manualTransfer(0x123, 111), 'manual transfer can not be performed, while crowdsale is paused');
+    });
+  });
+
+  it('events', async () => {
+    it('should get CrowdsalePaused event on pause', async () => {
+      let tx = await crowdsale.pauseCrowdsale();
+
+      let events = tx.logs;
+      let manualEvent = events[0];
+
+      assert.equal(events.length, 1, 'wrong event count on CrowdsalePaused');
+      assert.equal(manualEvent.event, 'CrowdsalePaused', 'wrong event name');
+    });
   });
 });
 
@@ -77,10 +160,6 @@ contract('GDPCrowdsale', (accounts) => {
       assert.notEqual(await crowdsale.token.call(), 0, 'token should be already created');
     });
 
-    it('should validate ICO is not paused', async () => {
-      assert.isFalse(await crowdsale.isPaused.call(), 'crowdsale should not be paused');
-    });
-
     it('should validate ICO has not closed', async () => {
       assert.isFalse(await crowdsale.hasEnded.call(), 'crowdsale should not be closed');
     });
@@ -100,53 +179,12 @@ contract('GDPCrowdsale', (accounts) => {
       assert.equal(await token.owner.call(), crowdsale.address, 'wrong token owner address');
     });
 
-    it('should validate pause state', async () => {
-      assert.isFalse(await crowdsale.isPaused.call(), 'should not be paused at th beginning');
-    });
-
     it('should validate token limit value for ico purchase', async () => {
       let totalSupply = new BigNumber(await token.totalSupply.call()).toFixed();
       let purchaseLimitInPercent = new BigNumber(await crowdsale.icoTokensReservedPercent.call()).toFixed();
       let purchaseLimit = new BigNumber(await crowdsale.icoTokensReserved.call()).toFixed();
 
       assert.equal(new BigNumber(totalSupply / 100 * purchaseLimitInPercent).toFixed(), purchaseLimit, 'wrong purchase token limit');
-    });
-  });
-
-  describe('should validate pausable functional', () => {
-    it('can be set by owner only', async () => {
-      await asserts.throws(crowdsale.pauseCrowdsale.call({
-        from: ACC_1
-      }), 'should fail, only owner can pause');
-
-      asserts.doesNotThrow(crowdsale.pauseCrowdsale.call(), 'owner should be able to pause');
-    });
-
-    it('should validate owner can pause and run again', async () => {
-      assert.isFalse(await crowdsale.isPaused.call(), 'should not be paused before test');
-
-      let pauseTx = await crowdsale.pauseCrowdsale();
-      let pauseLogs = pauseTx.logs;
-      assert.equal(pauseLogs[0].event, 'CrowdsalePaused', 'wrong event, when crowdsale paused');
-      assert.isTrue(await crowdsale.isPaused.call(), 'should be paused after owner paused');
-
-      let restoreTx = await crowdsale.restoreCrowdsale();
-      let RestoreLogs = restoreTx.logs;
-      assert.equal(RestoreLogs[0].event, 'CrowdsaleRestored', 'wrong event, when crowdsale restored');
-      assert.isFalse(await crowdsale.isPaused.call(), 'should run after owner run');
-    });
-
-    it('should validate tokens can not be bought while paused', async () => {
-      await crowdsale.pauseCrowdsale();
-
-      //  buy tokens
-      await asserts.throws(crowdsale.sendTransaction({
-        from: ACC_1,
-        value: ACC_1_WEI_SENT
-      }), 'purchase can not be performed, while crowdsale is paused');
-
-      //  manual transfer
-      await asserts.throws(crowdsale.manualTransfer(0x123, 111), 'manual transfer can not be performed, while crowdsale is paused');
     });
   });
 
@@ -509,16 +547,6 @@ contract('GDPCrowdsale', (accounts) => {
       assert.equal(purchaseEvent.args.from, OWNER, 'wrong purchaser');
       assert.equal(purchaseEvent.args.to, ACC_1, 'wrong beneficiary');
       assert.equal(new BigNumber(purchaseEvent.args.amount).toFixed(), web3.toWei(4760, 'ether'), 'wrong amount');
-    });
-
-    it('should get CrowdsalePaused event on pause', async () => {
-      let tx = await crowdsale.pauseCrowdsale();
-
-      let events = tx.logs;
-      let manualEvent = events[0];
-
-      assert.equal(events.length, 1, 'wrong event count on CrowdsalePaused');
-      assert.equal(manualEvent.event, 'CrowdsalePaused', 'wrong event name');
     });
 
     it('should get CrowdsaleRestored event on restore', async () => {
