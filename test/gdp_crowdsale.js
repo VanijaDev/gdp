@@ -361,18 +361,18 @@ contract('GDPCrowdsale', (accounts) => {
       }));
     });
 
-    // it('should validate corrent token amount after owner transfered manually', async () => {
-    //   const TOKENS = new BigNumber(web3.toWei(3, 'ether'));
-    //   let crowdsaleTokens = new BigNumber(await token.balanceOf.call(crowdsale.address));
+    it('should validate corrent token amount after owner transfered manually', async () => {
+      const TOKENS = new BigNumber(web3.toWei(3, 'ether'));
+      let crowdsaleTokens = new BigNumber(await token.balanceOf.call(crowdsale.address));
 
-    //   crowdsale.manualTransfer(ACC_1, TOKENS);
+      crowdsale.manualTransfer(ACC_1, TOKENS);
 
-    //   let balance = new BigNumber(await token.balanceOf(ACC_1));
-    //   assert.equal(balance.toFixed(), TOKENS.toFixed(), 'wrong ACC_1 token amount after manual transfer');
+      let balance = new BigNumber(await token.balanceOf(ACC_1));
+      assert.equal(balance.toFixed(), TOKENS.toFixed(), 'wrong ACC_1 token amount after manual transfer');
 
-    //   let crowdsaleTokensAfterTransfer = new BigNumber(await token.balanceOf.call(crowdsale.address));
-    //   assert.equal(balance.toFixed(), new BigNumber(crowdsaleTokens.minus(crowdsaleTokensAfterTransfer)).toFixed(), 'wrong token amount substracted from crowdsale');
-    // });
+      let crowdsaleTokensAfterTransfer = new BigNumber(await token.balanceOf.call(crowdsale.address));
+      assert.equal(balance.toFixed(), new BigNumber(crowdsaleTokens.minus(crowdsaleTokensAfterTransfer)).toFixed(), 'wrong token amount substracted from crowdsale');
+    });
   });
 
   describe('should validate purchase', () => {
