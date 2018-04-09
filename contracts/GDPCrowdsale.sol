@@ -80,8 +80,8 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
   }
 
   function forwardFunds() public payable {
-    wallet.transfer(msg.value);
     super.forwardFunds();
+    wallet.transfer(msg.value);
   }
 
   function burnTokens() public onlyOwner {
