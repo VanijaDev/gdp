@@ -17,8 +17,14 @@ contract StagesCrowdsale is Ownable {
   uint256[] public stageBonuses;
   mapping (uint256 => uint256) private raisedInStages;
 
-  function StagesCrowdsale(uint256 _rate, uint256[] _stageGoals, uint256[] _stageBonuses) public {
+  function StagesCrowdsale(uint256 _rate, uint256 _softCap, uint256 _hardCap, uint256[] _stageGoals, uint256[] _stageBonuses) public {
     require(_rate > 0);
+    require(_softCap > 0);
+    require(_hardCap > _softCap);
+
+      //  convert to wei
+    softCap = _softCap * uint(10)**18;
+    hardCap = _hardCap * uint(10)**18;
     
     stageGoals = validateAndConvertStagesGoalsToWei(_stageGoals);
     rate = _rate;
@@ -116,6 +122,14 @@ contract StagesCrowdsale is Ownable {
       require(stageGoals[_stage-1] < _stageGoal);
     }
     stageGoals[_stage] = _stageGoal;
+  }
+
+  function softCapReached() public view returns (bool) {
+    return weiRaised >= softCap;
+  }
+
+  function hardCapReached() public view returns (bool) {
+    return weiRaised >= hardCap;
   }
 
   /**

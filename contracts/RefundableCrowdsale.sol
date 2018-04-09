@@ -21,17 +21,11 @@ contract RefundableCrowdsale is TimedCrowdsale, StagesCrowdsale {
    */
   function RefundableCrowdsale(uint256 _softCap, uint256 _hardCap, uint256 _openingTime, uint256 _closingTime, uint256 _basicRate, uint256[] _stageGoals, uint256[] _stageBonuses)
     TimedCrowdsale(_openingTime, _closingTime)
-    StagesCrowdsale(_basicRate, _stageGoals, _stageBonuses) public {
-      require(_softCap > 0);
-      require(_hardCap > _softCap);
-
-      //  convert to wei
-      softCap = _softCap * uint(10)**18;
-      hardCap = _hardCap * uint(10)**18;
-
+    StagesCrowdsale(_basicRate, _softCap, _hardCap, _stageGoals, _stageBonuses) public {
       vault = new RefundVault();
   }
 
+//  TODO: rewrite to internal
   function forwardFunds() public payable {
     weiRaised = weiRaised.add(msg.value);    
     vault.deposit(msg.sender, msg.value);
@@ -46,22 +40,14 @@ contract RefundableCrowdsale is TimedCrowdsale, StagesCrowdsale {
     vault.refund(msg.sender);
   }
 
-  function softCapReached() public view returns (bool) {
-    return weiRaised >= softCap;
-  }
-
-  function hardCapReached() public view returns (bool) {
-    return weiRaised >= hardCap;
-  }
-
   /**
    * @dev Check if refund can be claimed
    */  
    function refundEnabled() public view returns(bool) {
-     bool icoGoalReached = softCapReached();
+     bool icoSoftGoalReached = softCapReached();
      bool icoTimeOver = hasEnded();
      bool vaultHasBalance = address(vault).balance > 0;
 
-     return !icoGoalReached && icoTimeOver && vaultHasBalance;
+     return !icoSoftGoalReached && icoTimeOver && vaultHasBalance;
    }
 }
