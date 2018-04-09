@@ -6,7 +6,7 @@ module.exports = function (deployer, network, accounts) {
     /**
      * PRODUCTION
      */
-    let BASIC_RATE = 1700;
+    let RATE = 1700;
     let BONUSES = [40, 30, 20, 10, 5]; //  in %
     let WALLET; //TODO: add wallet from GD
     let SOFT_CAP = 1000; // in ETH;
@@ -36,11 +36,11 @@ module.exports = function (deployer, network, accounts) {
     }
 
     console.log('\nstart, end: ', start, end);
-    console.log('BASIC_RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, HARD_CAP:   ', BASIC_RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, HARD_CAP, '\n\n\n');
+    console.log('RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, HARD_CAP:   ', RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, HARD_CAP, '\n\n\n');
 
     deployer.deploy(GDPToken).then(async () => {
         let token = await GDPToken.deployed();
-        await deployer.deploy(GDPCrowdsale, start, end, BASIC_RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, HARD_CAP, token.address);
+        await deployer.deploy(GDPCrowdsale, start, end, RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, HARD_CAP, token.address);
         let ico = await GDPCrowdsale.deployed();
 
         //  transfer ownership to crowdsale
