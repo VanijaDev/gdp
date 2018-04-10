@@ -118,10 +118,7 @@ contract StagesCrowdsale is Ownable {
   }
 
   function updateStageGoal(uint256 _stage, uint256 _stageGoal) public onlyOwner {
-    if(_stage > 0) {
-      require(stageGoals[_stage-1] < _stageGoal);
-    }
-    stageGoals[_stage] = _stageGoal;
+    stageGoals[_stage] = _stageGoal.mul(uint(10)**18);
   }
 
   function softCapReached() public view returns (bool) {
