@@ -8,7 +8,7 @@ module.exports = function (deployer, network, accounts) {
      */
     let RATE = 1700;
     let BONUSES = [40, 30, 20, 10, 5]; //  in %
-    let WALLET; //TODO: add wallet from GD
+    let WALLET; //  TODO: add wallet from GD
     let SOFT_CAP = 1000; // in ETH;
     let HARD_CAP = 35000; // in ETH;
     let STAGE_GOALS = [2000, 5000, 5000, 5000, 5000]; // in ETH
@@ -17,7 +17,7 @@ module.exports = function (deployer, network, accounts) {
 
 
     /**
-     * TEST
+     * TESTING
      */
     if (network == 'develop') {
         SOFT_CAP = 50;
@@ -31,8 +31,8 @@ module.exports = function (deployer, network, accounts) {
         HARD_CAP = 10;
         STAGE_GOALS = [1, 2, 2, 2, 2];
         WALLET = 0x7be996203abfe93b9cf537d3c940f9092664b7c6; //     test wallet;
-        start = 000000000;
-        end = 00000000;
+        start = 1523358300; //  14:05
+        end = 1523368300;
     }
 
     console.log('\nstart, end: ', start, end);
