@@ -70,18 +70,14 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
     token.transfer(_beneficiary, tokens);
     TokenPurchase(msg.sender, _beneficiary, msg.value, tokens);
 
-    forwardFunds();
+    wallet.transfer(msg.value);
+    forwardFunds(msg.value);
   }
 
   //  owner is able to mint tokens manually
   function manualTransfer(address _beneficiary, uint256 _amount) onlyOwner onlyWhileOpen isNotPaused validTransfer(_beneficiary, _amount) public {
     token.transfer(_beneficiary, _amount);
     ManualTransfer(msg.sender, _beneficiary, _amount);
-  }
-
-  function forwardFunds() public payable {
-    super.forwardFunds();
-    wallet.transfer(msg.value);
   }
 
   function burnTokens() public onlyOwner {

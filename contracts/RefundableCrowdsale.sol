@@ -25,10 +25,9 @@ contract RefundableCrowdsale is TimedCrowdsale, StagesCrowdsale {
       vault = new RefundVault();
   }
 
-//  TODO: rewrite to internal
-  function forwardFunds() public payable {
-    weiRaised = weiRaised.add(msg.value);    
-    vault.deposit(msg.sender, msg.value);
+  function forwardFunds(uint256 _wei) internal {
+    weiRaised = weiRaised.add(_wei);    
+    vault.deposit(msg.sender, _wei);
   }
 
   /**
