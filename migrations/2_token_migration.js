@@ -22,7 +22,7 @@ module.exports = function (deployer, network, accounts) {
     if (network == 'develop') {
         SOFT_CAP = 50;
         HARD_CAP = 75;
-        STAGE_GOALS = [2, 5, 5, 5, 5];
+        STAGE_GOALS = [2, 5, 4, 6, 7];
         WALLET = accounts[9];
         start = web3.eth.getBlock('latest').timestamp + 10;
         end = start + IncreaseTime.duration.days(5);
