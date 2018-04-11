@@ -10,6 +10,7 @@
     "test": "truffle test",
     "compile": "truffle compile",
     "truffle": "truffle",
+    "testrpc": "ganache-cli",
     "ganache-cli": "ganache-cli"
   },
   "repository": {
@@ -34,6 +35,6 @@
     "zeppelin-solidity": "1.8.0",
     "bluebird": "^3.5.0",
     "ganache-cli": "^6.1.0",
-    "npm": "^5.6.0"
+    "npm": "^5.8.0"
   }
 }
