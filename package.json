@@ -28,6 +28,6 @@
     "truffle-hdwallet-provider": "0.0.3",
     "zeppelin-solidity": "1.6.0",
     "ethereumjs-testrpc": "5.0.1",
-    "truffle": "4.0.1"
+    "truffle": "4.1.5"
   }
 }
