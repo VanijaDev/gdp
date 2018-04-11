@@ -15,6 +15,6 @@ language: node_js
 node_js: 8
 install:
   - "npm install"
-  - "npm run testrpc > /dev/null &"
+  - "npm run ganache-cli > /dev/null &"
 script:
   - "npm run test"

@@ -19,7 +19,7 @@ module.exports = function (deployer, network, accounts) {
     /**
      * TESTING
      */
-    if (network == 'develop') {
+    if (network == 'develop' || network == 'development') {
         SOFT_CAP = 50;
         HARD_CAP = 75;
         STAGE_GOALS = [2, 5, 4, 6, 7];
