@@ -7,14 +7,16 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "truffle test",
+    "compile": "truffle compile",
+    "truffle": "truffle"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/VanijaDev/gdp.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["GDP", "gdpassport", "goods digital passport"],
+  "author": "Ivan Solomichev <ivan.solomichev@gmail.com>",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/VanijaDev/gdp/issues"
