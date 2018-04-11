@@ -35,6 +35,7 @@ module.exports = function (deployer, network, accounts) {
         end = 1523368300;
     }
 
+    console.log('network: ', network);
     console.log('\nstart, end: ', start, end);
     console.log('RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, HARD_CAP:   ', RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, HARD_CAP, '\n\n\n');
 
