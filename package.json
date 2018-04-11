@@ -7,9 +7,10 @@
     "test": "test"
   },
   "scripts": {
-    "test": "test",
-    "compile": "compile",
-    "truffle": "truffle"
+    "test": "truffle test",
+    "compile": "truffle compile",
+    "truffle": "truffle",
+    "testrpc": "testrpc"
   },
   "repository": {
     "type": "git",

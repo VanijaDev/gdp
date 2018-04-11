@@ -4,7 +4,7 @@ language: node_js
 node_js: 8
 install:
   - "npm install"
-  # - "npm run truffle develop"
+  - "npm run testrpc > /dev/null &"
 script:
   - "npm run test"
   
