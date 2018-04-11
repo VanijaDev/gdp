@@ -10,7 +10,7 @@
     "test": "truffle test",
     "compile": "truffle compile",
     "truffle": "truffle",
-    "testrpc": "testrpc"
+    "ganache-cli": "ganache-cli"
   },
   "repository": {
     "type": "git",
