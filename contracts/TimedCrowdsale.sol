@@ -22,7 +22,7 @@ contract TimedCrowdsale is Ownable {
    */
   function TimedCrowdsale(uint256 _openingTime, uint256 _closingTime) public {
     require(_openingTime >= now);
-    require(_closingTime >= _openingTime);
+    require(_closingTime > _openingTime);
 
     openingTime = _openingTime;
     closingTime = _closingTime;
@@ -37,7 +37,9 @@ contract TimedCrowdsale is Ownable {
   }
 
   function updateOpeningTime(uint256 _openingTime) public onlyOwner {
+      require(now < openingTime);
       require(_openingTime > now);
+      require(_openingTime < closingTime);  //  update closing time first if needed also
 
       openingTime = _openingTime;
   }
