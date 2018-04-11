@@ -4,9 +4,6 @@ language: node_js
 node_js: 8
 install:
   - "npm install"
-  - "npm install truffle"
-  - "npm install ganache-cli"
   - "npm run ganache-cli > /dev/null &"
 script:
   - "npm run test"
-  
