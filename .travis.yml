@@ -6,7 +6,7 @@ install:
   - "npm install"
   - "npm install truffle"
   - "npm install ganache-cli"
-  - "npm run ganache-cli > /dev/null &"
+  - "npm run ganache-cli"
 script:
   - "npm run test"
   
