@@ -26,13 +26,14 @@ module.exports = function (deployer, network, accounts) {
         WALLET = accounts[9];
         start = web3.eth.getBlock('latest').timestamp + 10;
         end = start + IncreaseTime.duration.days(5);
+        ``
     } else if (network == 'ropsten') {
         SOFT_CAP = 5;
         HARD_CAP = 10;
         STAGE_GOALS = [1, 2, 2, 2, 2];
-        WALLET = 0x7be996203abfe93b9cf537d3c940f9092664b7c6; //     test wallet;
-        start = 1523358300; //  14:05
-        end = 1523368300;
+        WALLET = 0x83a93da7f8bd243efbc54b73c3808451804c9ebb; //     Wallet in Metamask;
+        start = 0;
+        end = 0;
     }
 
     console.log('network: ', network);
