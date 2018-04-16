@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>GDP Login</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+    crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="assets/css/style.css" />
+  <script src='https://www.google.com/recaptcha/api.js'></script>
+  <script type="text/javascript" src="blockchain/ico.js"></script>
+  <script type="text/javascript" src="blockchain/token.js"></script>
+  <!-- <script src="../node_modules/bignumber.js/bignumber.js"></script> -->
+
+  <script type="text/javascript">
+    /**
+     * Helpers
+     */
+
+    function handleError(error) {
+      console.error(error);
+      alert(error.message);
+    }
+
+
+    if (web3 === "undefined") {
+      console.log("web3 == undefined");
+      web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+    } else {
+      console.log("web3.providers: ", web3.providers);
+      console.log("web3 currentProvider: ", web3.currentProvider);
+      web3 = new Web3(web3.currentProvider);
+    }
+
+    let ico = icoInstance();
+    let token = tokenInstance();
+    let accounts;
+
+    window.addEventListener('init', getCurrentMainAddress(), false);
+
+    function getCurrentMainAddress() {
+      web3.eth.getAccounts((err, accs) => {
+        if (err) {
+          handleError(err);
+          return;
+        }
+
+        if (accs.length == 0) {
+          console.warn("Metamask used, but no logged in");
+          return;
+        }
+
+        accounts = accs;
+        let coinbase = accounts[0];
+        document.getElementById("CurrentAddressID").innerText = coinbase;
+
+        showTokensQuantity(coinbase);
+      });
+    }
+
+    function showTokensQuantity(address) {
+      token.balanceOf.call(address, (err, res) => {
+        if (err) {
+          handleError(err);
+          return;
+        }
+
+        // console.log(web3.fromWei(res.toNumber(), "ether"));
+        document.getElementById("TokenQuantity").innerText = web3.fromWei(res.toNumber(), "ether");
+      });
+    }
+
+    function continueAction() {
+      let text = document.getElementById("ETHAmount").value;
+      let eth = parseFloat(text);
+      if (eth.length == 0) {
+        console.warn("wrong ETH input");
+        return
+      }
+
+      web3.eth.sendTransaction({
+        to: ico.address
+      }, (err, res) => {
+        if (err) {
+          handleError(err);
+          return;
+        }
+
+        console.log(res);
+      });
+    }
+
+    // function showBalance() {
+    //   web3.eth.getBalance(accounts[0], (err, bal) => {
+    //     if (err) {
+    //       console.error("Error while getting account balance");
+    //       return;
+    //     }
+
+    //     // console.log('bal: ', new BigNumber(bal).toFixed());
+
+    //     let ethBal = web3.fromWei(bal.toNumber(), "ether");
+    //     console.log(ethBal);
+    //   });
+    // }
+  </script>
+</head>
+
+<body>
+  <header id="header">
+    <nav class="navbar navbar-expand-lg navbar-light">
+      <a class="navbar-brand" href="#">
+        <img src="assets/images/gdp-logo.png">
+        <img src="assets/images/gdp-logo-text.png">
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+        aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="dashboard_navbar">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item active">
+            <a href="#" class="nav-link"> Dashboard </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link"> Terms of Token Sale </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link"> Settings </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link"> 2FA </a>
+          </li>
+          <li class="nav-item">
+            <button href="#" class="btn btn-menu"> Logout </button>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark-blue justify-content-center">
+      <p align="center" class="navbar-notice">
+        <b>My tokens:</b> 0.00
+        <b>GDP</b>
+        <span class="light-text">( 0.00 - 0.00 Bonus )</span>
+      </p>
+    </nav>
+  </header>
+  <div class="main">
+    <div class="container">
+      <section class="bg-white rouneded-section">
+        <div class="purple-header">
+          <h2 align="center"> Token Sale is live! </h2>
+          <p align="center">
+            <b> Initial price: </b> 1700 GDP= 1 ETH </p>
+          <p align="center">
+            <b> Min.pledge: </b> 0.1 ETH </p>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h3> Buy Token </h3>
+          </div>
+          <div class="col-md-7">
+            <p>Fund your account using preferred payment method in order to confirm purchase.
+              <br/> The number of GDP tokens will be automatically calculated when Goods Digital Passport receives your deposit.</p>
+          </div>
+          <div align="right" class="col-md-5">
+            <a href="#" class="btn btn-whitelist">
+              <img class="img-before" src="assets/images/whitelist__youtube.png" /> Watch video tutorial </a>
+          </div>
+        </div>
+        <nav>
+          <ul class="nav tabs">
+            <li class="nav-item">
+              <img src="assets/images/eth-small.png" /> Ethereum </li>
+          </ul>
+        </nav>
+        <div class="row">
+          <div class="col-md-9">
+            <div class="card-buy-token">
+              <img src="assets/images/qr-code.png" />
+              <div class="p-1">
+                <p>
+                  <b>Send ETH to the address:</b>
+                  <br/> 0x4696cfc70d3497fc909fc6bfcf424ffd0fee3afd </p>
+                <form>
+                  <div class="form-row ">
+                    <div class="col-sm-5">
+                      <input type=text class="form-control" id="ETHAmount" />
+                    </div>
+                    <div align="center" class="col-sm-1 align-middle">
+                      <font size="+2.5">
+                        <b>=</b>
+                      </font>
+                    </div>
+                    <div class="col-sm-5 currency-usd">
+                      <input type="text" class="form-control" /> </div>
+                  </div>
+                </form>
+              </div>
+              <div>
+                <button style="margin-left: 40px" onclick="continueAction()">Continue</button>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <p>Enter amount of your payment and click "Continue" to proceed. Service is provided by Indacoin.
+              <br/> &nbsp; </p>
+            <p class="float-left">GAS LIMIT:
+              <br/>
+              <b>21 000</b>
+            </p>
+            <p class="float-right"> MAX GAS PRICE:
+              <br/>
+              <b>50 GWei</b>
+            </p>
+          </div>
+          <div class="col-md-9">
+            <p> Transactions will be automatically added to your balance when they are confirmed
+              <br/> by the network. It may take up to few hours. Please be patient.</p>
+          </div>
+        </div>
+      </section>
+      <section class="bg-white rouneded-section mt-4 pb-3">
+        <div>
+          <span>CurrentAddress: </span>
+          <span id="CurrentAddressID"></span>
+          <span style="margin-left: 10px">tokens: </span>
+          <span id="TokenQuantity"></span>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h3> My tokens: </h3>
+          </div>
+          <div class="col-md-8">
+            <div class="row align-items-center pb-4">
+              <div class="card col-5 bg-purple">
+                <h5 id="eth-counting" class="card-title"> 0.00 </h5>
+                <p>Your GDP tokens</p>
+
+              </div>
+              <div class="col-sm-1">
+                <p>
+                  <font size="+2.5">
+                    <b>+</b>
+                  </font>
+                </p>
+              </div>
+              <div class="card col-sm-3 bg-light-purple">
+                <h5 class="card-title"> 0.00 </h5>
+                <p>Free bonus</p>
+              </div>
+            </div>
+            <p>Token distribution to contributors will take place one week after the end of Token Sale. Please make sure you
+              have configured your ERC20 compatible wallet.</p>
+          </div>
+          <div class="col-md-4 border-left pt-4 pb-5 pl-4">
+            <img class="float-right" src="assets/images/eth-address__image.png" />
+            <h3>ETH address</h3>
+            <p>Add ethereum address
+              <br/> for your GDP tokens</p>
+            <button class="btn "> Add address</button>
+          </div>
+        </div>
+      </section>
+      <section class="bg-white rouneded-section mt-4 pb-4">
+        <div class="row">
+          <div class="col-md-12">
+            <h3> Transactions </h3>
+          </div>
+          <div class="col-md-12 mt-3">
+            <div class="card">
+              <div align="center" class="card-body">
+                <img src="assets/images/icon-list.png" /> Contribute to see your first transaction </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="bg-purple text-white rouneded-section mt-4 pt-4 pb-2">
+        <div class="row">
+          <div class="col-md-3">
+            <h3>Affiliate Program</h3>
+          </div>
+          <div class="col-md-9">
+            <p>Additional 5% bonus token you will get from all your friends that will use your referal link! Any user registered
+              with this link will get 50 GPD as a welcome bonus. Please note that a balance of at least 500 GDP is required
+              to withdraw these tokens.</p>
+            <div class="link-copy-block mb-3" data-link="http://www.token.gdpassports.com/special0987">
+              <img class="link-copy--icon" src="assets/images/link-ico.png" />
+              <a href="http://www.token.gdpassports.com/special0987"> http://www.token.gdpassports.com/special0987 </a>
+              <p class="link-copy--text">COPY LINK ADDRESS</p>
+            </div>
+            <div class="float-left col-md-3 pl-0">
+              <p>
+                <span class="ft-size-extend-middle">
+                  <b>0 TOKEN </b>
+                </span>
+                <br/> Bonus from refferals</p>
+            </div>
+            <div class="float-left col-md-4">
+              <p>
+                <span class="ft-size-extend-middle">
+                  <b>0 </b>
+                </span>
+                <br/> Registrations</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <footer id="footer">
+    <div class="container">
+      <nav>
+        <ul class="nav justify-content-center">
+          <li class="nav-item copyrights">
+            <span>© 2018</span>
+          </li>
+          <li class="nav-item">
+            <a href="#"> Terms of Use </a>
+          </li>
+          <li class="nav-item">
+            <a href="#"> Terms of Token Sale </a>
+          </li>
+          <li class="nav-item">
+            <a href="#"> Terms of Privacy Police </a>
+          </li>
+        </ul>
+      </nav>
+      <nav>
+        <ul class="nav justify-content-center social-navs">
+          <li class="nav-item">
+            <a href="#">
+              <img src="assets/images/telegram.png">
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#">
+              <img src="assets/images/media-social.png">
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#">
+              <img src="assets/images/facebook-icon.png">
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#">
+              <img src="assets/images/twitter.png">
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#">
+              <img src="assets/images/linkedin.png">
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>GDP Login</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link type="text/css" rel="stylesheet" href="assets/css/style.css" />
+    <script src='https://www.google.com/recaptcha/api.js'></script>
+  </head>
+  <body>
+    <header id="header">
+      <nav class="navbar navbar-expand-lg navbar-light">
+        <a class="navbar-brand" href="#"><img src="assets/images/gdp-logo.png"><img src="assets/images/gdp-logo-text.png"></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="dashboard_navbar">
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item active"><a href="#" class="nav-link"> Dashboard </a></li>
+            <li class="nav-item"><a href="#" class="nav-link"> Terms of Token Sale </a></li>
+            <li class="nav-item"><a href="#" class="nav-link"> Settings </a></li>
+            <li class="nav-item"><a href="#" class="nav-link"> 2FA </a></li>
+            <li class="nav-item"><button href="#" class="btn btn-menu"> Logout </button></li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+    <div class="main">
+      <div class="container">
+        <section class="bg-white rouneded-section pt-2 pb-5 mt-5">
+          <div class="row">
+            <div class="col-md-12">
+              <h3> Settings </h3>
+            </div>
+            <div class="col-md-12">
+              <ul class="nav tabs nav-tabs">
+                <li class="nav-item"><a href="#" class="nav-link"> 2FA </a></li>
+                <li class="nav-item"><a href="#" class="nav-link"> Email and Password </a></li>
+                <li class="nav-item  active"><a href="#" class="nav-link"> Verification </a></li>
+                <li class="nav-item"><a href="#" class="nav-link"> Ethereum address </a></li>
+              </ul>
+            </div>
+            <div class="col-md-12 pt-4 pb-4">
+              <h3 align="center" class="slim-header">Current status of verification: <span class="red-text"> unverified </span>  </h3>
+            </div>
+            <div class="col-md-10">
+              <form>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="settings_firstname">First name</label>
+                      <input type="text" class="form-control" id="settings_firstname"  />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="settings_lastname">Last name</label>
+                      <input type="text" class="form-control" id="settings_lastname"  />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="settings_country">Country</label>
+                      <select class="form-control" id="settings_country"  >
+                        <option> Marrocco </option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label>Gender</label><br/>
+                      <div class="form-check form-check-inline">
+                        <input class="form-check-input" name="setting_gender" type="radio" id="setting_gender_male" value="option1">
+                        <label class="form-check-label" for="setting_gender_male">Male</label>
+                      </div>
+                      <div class="form-check form-check-inline">
+                        <input class="form-check-input" name="setting_gender"  type="radio" id="setting_gender_female" value="option2">
+                        <label class="form-check-label" for="setting_gender_female">Female</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label for="setting_birthdate">Birth date</label>
+                      <input type="date" class="form-control" id="setting_birthdate" />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="settings_phonenumber">Phone <span class="gray-text"> optional </span></label>
+                    <input type="tel" class="form-control" id="settings_phonenumber" placeholder="With country code" />
+                  </div>
+                  <div class="col-md-6">
+                    <label for="settings_email">Email </label>
+                    <input type="email" class="form-control" id="settings_email" />
+                  </div>
+                  <div class="col-md-12 pt-4">
+                    <p class="text-size-middle"> <b> Upload documents (jpg, png or pdf) </b> </p>
+                  </div>
+                  <div class="col-md-6">
+                    <input type="file" class="d-none" accept="image/jpeg,image/png,application/pdf"/>
+                    <div class="choose-file-upload">
+                      <img src="assets/images/icon-upload.png" >
+                      <span class="text-uploading-file">Choose proof of identity</span>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <input type="file" class="d-none" accept="image/jpeg,image/png,application/pdf"/>
+                    <div class="choose-file-upload">
+                      <img src="assets/images/icon-upload.png" >
+                      <span class="text-uploading-file">Choose proof of residency</span>
+                    </div>
+                  </div>
+                  <div class="col-md-12 pt-4">
+                    <p class="submit-form-button">
+                      <button type="submit" class="btn btn-primary bg-purple rouneded-button mr-5">Send Request</button>
+
+                      <input type="checkbox" required class="form-check-input hidden-chackbox" value="true" id="check_becked_key">
+                      <label class="form-check-label hidden-chackbox" for="check_becked_key"> I agree with <a href="#"> GDPs KYC Policy </a> </label>
+                    </p>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="col-md-12 pl-5 pt-4">
+              <p class="text-size-small">To verify account please upload these documents:</p>
+              <p class="text-size-small">1. A proof of identity (any form this list)<br/> - international passport (data pages with photo);<br/> - national ID card (both sides, with photo only)<br/> - permanent driver's license (both sides, with photo only)</p>
+              <p class="text-size-small">2. A proof of residency (any form this list)<br/> - utility bill, including electricity, water, gas, landing phone,<br/> Internet provider service or calble TV bill;<br/> - bank statement;<br/> - tax return accepted by tax authority;<br/> - property tax bill<br/> - election/Voters ID; <br/> - official government letter</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <footer id="footer">
+      <div class="container">
+        <nav>
+          <ul class="nav justify-content-center">
+            <li class="nav-item copyrights"><span>© 2018</span></li>
+            <li class="nav-item"> <a href="#"> Terms of Use </a> </li>
+            <li class="nav-item"> <a href="#"> Terms of Token Sale </a> </li>
+            <li class="nav-item"> <a href="#"> Terms of Privacy Police </a> </li>
+          </ul>
+        </nav>
+        <nav>
+          <ul class="nav justify-content-center social-navs">
+            <li class="nav-item"> <a href="#"><img src="assets/images/telegram.png"></a> </li>
+            <li class="nav-item"> <a href="#"><img src="assets/images/media-social.png"></a> </li>
+            <li class="nav-item"> <a href="#"><img src="assets/images/facebook-icon.png"></a> </li>
+            <li class="nav-item"> <a href="#"><img src="assets/images/twitter.png"></a> </li>
+            <li class="nav-item"> <a href="#"><img src="assets/images/linkedin.png"></a> </li>
+          </ul>
+        </nav>
+      </div>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  </body>
+</html>
