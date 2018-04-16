@@ -443,11 +443,11 @@ contract('GDPCrowdsale', (accounts) => {
             let purchaseEvent = events[0];
 
             assert.equal(events.length, 1, 'wrong event count on TokenPurchase');
-            assert.equal(purchaseEvent.event, 'TokenPurchase', 'wrong event name');
-            assert.equal(purchaseEvent.args.purchaser, ACC_1, 'wrong purchaser');
-            assert.equal(purchaseEvent.args.beneficiary, ACC_1, 'wrong beneficiary');
-            assert.equal(new BigNumber(purchaseEvent.args.value).toFixed(), ACC_1_WEI_SENT.toFixed(), 'wrong value');
-            assert.equal(new BigNumber(purchaseEvent.args.amount).toFixed(), web3.toWei(2380, 'ether'), 'wrong amount');
+            assert.equal(purchaseEvent.event, 'TokenPurchase', 'wrong event name on TokenPurchase');
+            assert.equal(purchaseEvent.args.purchaser, ACC_1, 'wrong purchaser on TokenPurchase');
+            assert.equal(purchaseEvent.args.beneficiary, ACC_1, 'wrong beneficiary on TokenPurchase');
+            assert.equal(new BigNumber(purchaseEvent.args.value).toFixed(), ACC_1_WEI_SENT.toFixed(), 'wrong value on TokenPurchase');
+            assert.equal(new BigNumber(purchaseEvent.args.amount).toFixed(), web3.toWei(2380, 'ether'), 'wrong amount on TokenPurchase');
         });
 
         it('should get ManualTransfer event on manual transfer', async () => {
