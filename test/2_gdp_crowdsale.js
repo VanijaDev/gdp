@@ -149,6 +149,87 @@ contract('GDPCrowdsale', (accounts) => {
         });
     });
 
+    describe('add bounties functional', () => {
+        it('should validate only owner can add boundaries', async () => {
+            const TOKENS = new BigNumber(web3.toWei(3, 'ether'));
+            await asserts.throws(crowdsale.addBounties([ACC_1], [TOKENS], {
+                from: ACC_1
+            }), 'only owner can add bounty');
+        });
+
+        it('should validate input values are correct', async () => {
+            const TOKENS = new BigNumber(web3.toWei(3, 'ether'));
+            await asserts.throws(crowdsale.addBounties([ACC_1], [TOKENS, TOKENS]), 'wrong input params');
+        });
+
+        it('should validate owner is able to add single bounty', async () => {
+            const TOKENS = new BigNumber(web3.toWei(3, 'ether'));
+            await asserts.doesNotThrow(crowdsale.addBounties([ACC_1], [TOKENS]), 'owner should be able to add single bounty');
+        });
+
+        it('should validate owner is able to add multiple bounties', async () => {
+            const TOKENS = new BigNumber(web3.toWei(3, 'ether'));
+            const TOKENS_1 = new BigNumber(web3.toWei(1, 'ether'));
+            await asserts.doesNotThrow(crowdsale.addBounties([ACC_1, ACC_2], [TOKENS, TOKENS_1]), 'owner should be able to add multiple bounties');
+        });
+
+        it('should validate correct value is being set after adding single bounty', async () => {
+            const TOKENS = new BigNumber(web3.toWei(3, 'ether'));
+
+            assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), 0, 'initial allowance ACC_1 should be 0');
+
+            await crowdsale.addBounties([ACC_1], [TOKENS]);
+            assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), TOKENS.toFixed(), 'wrong bounty ACC_1 amount');
+        });
+
+        it('should validate correct values are being set after adding multiple bounties', async () => {
+            const TOKENS_1 = new BigNumber(web3.toWei(3, 'ether'));
+            const TOKENS_2 = new BigNumber(web3.toWei(1, 'ether'));
+
+            assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), 0, 'initial allowance ACC_1 should be 0');
+            assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_2)).toFixed(), 0, 'initial allowance ACC_2 should be 0');
+
+            await crowdsale.addBounties([ACC_1, ACC_2], [TOKENS_1, TOKENS_2]);
+            assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), TOKENS_1.toFixed(), 'wrong ACC_1 bounty amount');
+            assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_2)).toFixed(), TOKENS_2.toFixed(), 'wrong ACC_2 bounty amount');
+        });
+
+        it('should validate multiple bounties for single address are being combined', async () => {
+            const TOKENS_1 = new BigNumber(web3.toWei(3, 'ether'));
+            const TOKENS_2 = new BigNumber(web3.toWei(1, 'ether'));
+
+            assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), 0, 'initial allowance ACC_1 before adding should be 0');
+            await crowdsale.addBounties([ACC_1, ACC_2], [TOKENS_1, TOKENS_2]);
+            await crowdsale.addBounties([ACC_1], [TOKENS_2]);
+            assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), TOKENS_1.plus(TOKENS_2).toFixed(), 'wrong ACC_1 bounty amount after multiple adding');
+        });
+
+        it('should validate bounty tokens can be spent normally', async () => {
+            const TOKENS_1 = new BigNumber(web3.toWei(3, 'ether'));
+
+            await crowdsale.addBounties([ACC_1], [TOKENS_1]);
+            await assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), TOKENS_1.toFixed(), 'initial allowance ACC_1 should be TOKEN_1');
+            await assert.equal(new BigNumber(await token.balanceOf(ACC_2)).toFixed(), 0, 'initial allowance ACC_2 should be 0');
+
+            await token.transferFrom(crowdsale.address, ACC_2, TOKENS_1, {
+                from: ACC_1
+            });
+            await assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), 0, 'allowance ACC_1 should be 0 after transfer');
+            await assert.equal(new BigNumber(await token.balanceOf(ACC_2)).toFixed(), TOKENS_1.toFixed(), 'allowance ACC_2 should be TOKEN_1 after transfer');
+        });
+
+        it('should validate account without bounty tokens has allowance == 0, can not transfer bounty tokens', async () => {
+            const TOKENS_1 = new BigNumber(web3.toWei(3, 'ether'));
+
+            await assert.equal(new BigNumber(await token.balanceOf(ACC_1)).toFixed(), 0, 'initial allowance ACC_1 should be 0');
+            await asserts.throws(token.transferFrom(crowdsale.address, ACC_2, TOKENS_1, {
+                from: ACC_1
+            }), 'should fail because ACC_1 has no bounty');
+            await assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), 0, 'allowance ACC_1 should be 0 after transfer');
+            await assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_2)).toFixed(), 0, 'allowance ACC_2 should be 0 after transfer');
+        });
+    });
+
     describe('should validate purchase', () => {
         it('should validate weiRaised value', async () => {
             //  ACC_1
