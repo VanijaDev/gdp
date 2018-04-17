@@ -27,13 +27,6 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
    *  EVENTS
    */
 
-  /**
-   * @dev event for token purchase logging
-   * @param purchaser who paid for the tokens
-   * @param beneficiary who got the tokens
-   * @param value weis paid for purchase
-   * @param amount amount of tokens purchased
-   */
   event TokenPurchase(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
   event ManualTransfer(address indexed from, address indexed to, uint256 amount);
 
@@ -68,16 +61,35 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
     icoTokensSold = icoTokensSold.add(tokens);
 
     token.transfer(_beneficiary, tokens);
-    TokenPurchase(msg.sender, _beneficiary, msg.value, tokens);
 
     wallet.transfer(msg.value);
     forwardFunds(msg.value);
+
+    TokenPurchase(msg.sender, _beneficiary, msg.value, tokens);
   }
 
-  //  owner is able to mint tokens manually
   function manualTransfer(address _beneficiary, uint256 _amount) onlyOwner onlyWhileOpen isNotPaused validTransfer(_beneficiary, _amount) public {
     token.transfer(_beneficiary, _amount);
     ManualTransfer(msg.sender, _beneficiary, _amount);
+  }
+
+  /**
+   * @dev Owner can add multiple bonus beneficiaries.
+   * @param _addresses Beneficiary addresses
+   * @param _amounts Beneficiary bonus amounts
+   */
+  function addBounties(address[] _addresses, uint256[] _amounts) public onlyOwner {
+    uint256 addrLength = _addresses.length ;
+    require(addrLength == _amounts.length);
+
+    for (uint256 i = 0; i < addrLength; i ++) {
+      uint256 singleBounty = _amounts[i];
+      require(singleBounty > 0);
+      require(icoTokensSold.add(singleBounty) <= icoTokensReserved);
+      require(token.increaseApproval(_addresses[i], _amounts[i]) == true);
+
+      icoTokensSold = icoTokensSold.add(singleBounty);
+    }
   }
 
   function burnTokens() public onlyOwner {
@@ -87,7 +99,7 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
   }
 
   /**
-    * PRIVATE
+   * PRIVATE
    */
 
   function validPurchase() private view returns (bool) {
