@@ -74,13 +74,17 @@
     function continueAction() {
       let text = document.getElementById("ETHAmount").value;
       let eth = parseFloat(text);
-      if (eth.length == 0) {
-        console.warn("wrong ETH input");
-        return
+
+      if (eth.length == 0 || isNaN(eth) || text.length == 0) {
+        console.warn("No ETH amount");
+        return;
       }
 
+      console.log("eth amount: ", eth);
+
       web3.eth.sendTransaction({
-        to: ico.address
+        to: ico.address,
+        value: web3.toWei(eth, "ether")
       }, (err, res) => {
         if (err) {
           handleError(err);
