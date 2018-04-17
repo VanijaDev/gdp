@@ -26,18 +26,17 @@ module.exports = function (deployer, network, accounts) {
         WALLET = accounts[9];
         start = web3.eth.getBlock('latest').timestamp + 10;
         end = start + IncreaseTime.duration.days(5);
-        ``
     } else if (network == 'ropsten') {
-        SOFT_CAP = 5;
-        HARD_CAP = 10;
-        STAGE_GOALS = [1, 2, 2, 2, 2];
+        SOFT_CAP = 2;
+        HARD_CAP = 5;
+        STAGE_GOALS = [1, 1, 1, 1, 1];
         WALLET = 0x83a93da7f8bd243efbc54b73c3808451804c9ebb; //     Wallet in Metamask;
-        start = 0;
-        end = 0;
+        start = 1523964029; //  2:20:09 PM
+        end = 1523974029; //    5:07:09 PM
     }
 
     console.log('network: ', network);
-    console.log('\nstart, end: ', start, end);
+    console.log('start, end: ', start, end);
     console.log('RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, HARD_CAP:   ', RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, HARD_CAP, '\n\n\n');
 
     deployer.deploy(GDPToken).then(async () => {
