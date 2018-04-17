@@ -253,6 +253,20 @@ contract('GDPCrowdsale', (accounts) => {
             assert.equal(weiRaisedResult, correctWeiRaised, 'wrong weiRaised amount after ACC_2 purchase');
         });
 
+        it.only('should validate wallet balance after purchase', async () => {
+            let walletAddr = await crowdsale.wallet.call();
+            let walletFundsBefore = new BigNumber(await web3.eth.getBalance(walletAddr));
+            assert.equal(walletFundsBefore.toFixed(), web3.toWei(100, "ether"), 'wallet balance should be 100 before tx');
+
+            await crowdsale.sendTransaction({
+                from: ACC_1,
+                value: ACC_1_WEI_SENT
+            });
+
+            assert.equal(new BigNumber(await web3.eth.getBalance(walletAddr)).toFixed(), walletFundsBefore.plus(ACC_1_WEI_SENT).toFixed(), 'wallet balance should be walletFundsBefore + ACC_1_WEI_SENT after tx');
+
+        });
+
         it('validate token amount bought for eth', async () => {
             //  [40, 30, 20, 10, 5]     [2, 5, 5, 5, 5]
 
