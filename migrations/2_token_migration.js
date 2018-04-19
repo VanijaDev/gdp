@@ -30,12 +30,12 @@ module.exports = function (deployer, network, accounts) {
         SOFT_CAP = 2;
         HARD_CAP = 5;
         STAGE_GOALS = [1, 1, 1, 1, 1];
-        WALLET = 0x83a93da7f8bd243efbc54b73c3808451804c9ebb; //     Wallet in Metamask;
-        start = 1523964029; //  2:20:09 PM
-        end = 1523974029; //    5:07:09 PM
+        WALLET = "0x83a93da7f8bd243efbc54b73c3808451804c9ebb"; //     Wallet in Metamask;
+        start = 1524143500;
+        end = 1524153500;
     }
 
-    console.log('network: ', network);
+    console.log('\n\n\nnetwork: ', network);
     console.log('start, end: ', start, end);
     console.log('RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, HARD_CAP:   ', RATE, STAGE_GOALS, BONUSES, WALLET, SOFT_CAP, HARD_CAP, '\n\n\n');
 
