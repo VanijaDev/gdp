@@ -11,6 +11,7 @@
   <script src='https://www.google.com/recaptcha/api.js'></script>
   <script type="text/javascript" src="blockchain/ico.js"></script>
   <script type="text/javascript" src="blockchain/token.js"></script>
+  <script type="text/javascript" src="lib/getTransactionReceiptMined.js"></script>
   <!-- <script src="../node_modules/bignumber.js/bignumber.js"></script> -->
 
   <script type="text/javascript">
@@ -22,22 +23,62 @@
       console.error(error);
       alert(error.message);
     }
+  </script>
 
+  <script type="text/javascript">
+    web3.eth.getTransactionReceiptMined = getTransactionReceiptMined;
 
-    if (web3 === "undefined") {
-      console.log("web3 == undefined");
-      web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
-    } else {
-      console.log("web3.providers: ", web3.providers);
-      console.log("web3 currentProvider: ", web3.currentProvider);
-      web3 = new Web3(web3.currentProvider);
-    }
-
-    let ico = icoInstance();
-    let token = tokenInstance();
+    let ico = new ICO().build();
+    let token = new Token().build();
     let accounts;
 
-    window.addEventListener('init', getCurrentMainAddress(), false);
+
+    /**
+     * Promises
+     */
+
+    function createRatePromise() {
+      return new Promise((resolve, reject) => {
+        ico.rate.call((err, res) => {
+          if (err) {
+            handleError(err);
+            reject(err);
+          }
+          resolve(res);
+        });
+      });
+    }
+
+    function createBonusPromise() {
+      return new Promise((resolve, reject) => {
+        ico.currentStageBonus.call((err, res) => {
+          if (err) {
+            handleError(err);
+            reject(err);
+          }
+          resolve(res);
+        });
+      });
+    }
+
+    function createSendTransactionPromise(weiAmount) {
+      return new Promise((resolve, reject) => {
+        web3.eth.sendTransaction({
+          to: ico.address,
+          value: weiAmount
+        }, (err, tx) => {
+          if (err) {
+            reject(err);
+          }
+          resolve(tx);
+        });
+      });
+    }
+
+
+    /**
+     * Blockchain
+     */
 
     function getCurrentMainAddress() {
       web3.eth.getAccounts((err, accs) => {
@@ -71,43 +112,79 @@
       });
     }
 
-    function continueAction() {
-      let text = document.getElementById("ETHAmount").value;
+
+    /**
+     * Actions
+     */
+    function calculateTokensAmount() {
+      let text = document.getElementById("inputETH").value;
       let eth = parseFloat(text);
 
-      if (eth.length == 0 || isNaN(eth) || text.length == 0) {
+      if (eth.length == 0 || isNaN(eth) || text.length == 0 || eth == 0) {
+        return;
+      }
+
+      let rate;
+      let bonus;
+      createRatePromise().then((resolve) => {
+        rate = resolve.toNumber();
+        console.log("rate: ", rate);
+        return createBonusPromise();
+      }).then((resolve) => {
+        bonus = resolve.toNumber()
+        console.log("bonus: ", bonus);
+      }).then(() => {
+        let originalAmount = eth * rate;
+        let bonusAmount = originalAmount / 100 * bonus;
+        console.log('eth: ', eth);
+        console.log('originalAmount: ', originalAmount);
+        console.log('bonusAmount: ', bonusAmount);
+
+        document.getElementById("eth-counting").innerText = originalAmount;
+        document.getElementById("bonus-token-amount").innerText = bonusAmount;
+      }).catch((reject) => {
+        handleError(Error("rate reject"));
+      });
+    }
+
+    function continueAction() {
+      let text = document.getElementById("inputETH").value;
+      let eth = parseFloat(text);
+
+      if (eth.length == 0 || isNaN(eth) || text.length == 0 || eth == 0) {
         console.warn("No ETH amount");
         return;
       }
 
-      console.log("eth amount: ", eth);
+      let wei = web3.toWei(eth, "ether");
+      console.log("wei amount: ", wei);
 
-      web3.eth.sendTransaction({
-        to: ico.address,
-        value: web3.toWei(eth, "ether")
-      }, (err, res) => {
-        if (err) {
-          handleError(err);
-          return;
-        }
-
-        console.log(res);
+      createSendTransactionPromise(wei).then((resolve) => {
+        console.log('resolve: ', resolve);
+        return getTransactionReceiptMined(resolve, 500);
+      }).then((receipt) => {
+        console.log(receipt);
+      }).catch((reject) => {
+        console.error(reject);
       });
     }
+  </script>
 
-    // function showBalance() {
-    //   web3.eth.getBalance(accounts[0], (err, bal) => {
-    //     if (err) {
-    //       console.error("Error while getting account balance");
-    //       return;
-    //     }
+  <script type="text/javascript">
+    /**
+     * On load
+     */
 
-    //     // console.log('bal: ', new BigNumber(bal).toFixed());
+    if (web3 === "undefined") {
+      console.log("web3 == undefined");
+      web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+    } else {
+      console.log("web3.providers: ", web3.providers);
+      console.log("web3 currentProvider: ", web3.currentProvider);
+      web3 = new Web3(web3.currentProvider);
+    }
 
-    //     let ethBal = web3.fromWei(bal.toNumber(), "ether");
-    //     console.log(ethBal);
-    //   });
-    // }
+    window.addEventListener('init', getCurrentMainAddress(), false);
   </script>
 </head>
 
@@ -190,7 +267,7 @@
                 <form>
                   <div class="form-row ">
                     <div class="col-sm-5">
-                      <input type=text class="form-control" id="ETHAmount" />
+                      <input type=text class="form-control" id="inputETH" onchange="calculateTokensAmount();" />
                     </div>
                     <div align="center" class="col-sm-1 align-middle">
                       <font size="+2.5">
@@ -251,7 +328,7 @@
                 </p>
               </div>
               <div class="card col-sm-3 bg-light-purple">
-                <h5 class="card-title"> 0.00 </h5>
+                <h5 class="card-title" id="bonus-token-amount"> 0.00 </h5>
                 <p>Free bonus</p>
               </div>
             </div>
