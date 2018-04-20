@@ -9,8 +9,8 @@
     crossorigin="anonymous">
   <link type="text/css" rel="stylesheet" href="assets/css/style.css" />
   <script src='https://www.google.com/recaptcha/api.js'></script>
-  <script type="text/javascript" src="blockchain/ico.js"></script>
-  <script type="text/javascript" src="blockchain/token.js"></script>
+  <script type="text/javascript" src="blockchain_models/ico.js"></script>
+  <script type="text/javascript" src="blockchain_models/token.js"></script>
   <script type="text/javascript" src="lib/getTransactionReceiptMined.js"></script>
   <!-- <script src="../node_modules/bignumber.js/bignumber.js"></script> -->
 
@@ -170,11 +170,8 @@
     }
   </script>
 
-  <script type="text/javascript">
-    /**
-     * On load
-     */
 
+  <script type="text/javascript">
     if (web3 === "undefined") {
       console.log("web3 == undefined");
       web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
@@ -184,7 +181,14 @@
       web3 = new Web3(web3.currentProvider);
     }
 
-    window.addEventListener('init', getCurrentMainAddress(), false);
+    window.addEventListener('load', function () {
+      console.log('load');
+      getCurrentMainAddress();
+    });
+    window.addEventListener('focus', function () {
+      console.log('focused');
+      getCurrentMainAddress();
+    });
   </script>
 </head>
 
