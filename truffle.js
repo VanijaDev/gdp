@@ -1,5 +1,12 @@
 var HDWalletProvider = require("truffle-hdwallet-provider");
-var mnemonic = "actress gain faculty gloom lion eight merge gloom ginger horn inner foil"; //  IMPORTANT: keep in separate file
+
+/**
+ * TODO
+ * 1. client needs to create his own phrase
+ * 2. keep in separate file
+ */
+
+var mnemonic = "actress gain faculty gloom lion eight merge gloom ginger horn inner foil";
 
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
