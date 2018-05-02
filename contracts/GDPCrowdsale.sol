@@ -92,8 +92,13 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
     }
   }
 
+  function isRunning() public view returns (bool) {
+    bool timeOpen = now >= openingTime && now <= closingTime;
+    return timeOpen && !hardCapReached();
+  }
+
   function burnTokens() public onlyOwner {
-    require(hasEnded());
+    require(timeOver());
 
     token.burnTokens();
   }

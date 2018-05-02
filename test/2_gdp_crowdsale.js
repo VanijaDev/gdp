@@ -49,6 +49,10 @@ contract('GDPCrowdsale before ICO started', (accounts) => {
         let open = new BigNumber(await crowdsale.openingTime.call()).toFixed();
         assert.equal(open, openUp, 'opening time is wrong after update');
     });
+
+    it('should validate is not running', async () => {
+        assert.isFalse(await crowdsale.isRunning.call(), 'should not be running before ICO was started');
+    });
 });
 
 
@@ -116,6 +120,10 @@ contract('GDPCrowdsale', (accounts) => {
             let purchaseLimit = new BigNumber(await crowdsale.icoTokensReserved.call()).toFixed();
 
             assert.equal(new BigNumber(totalSupply / 100 * purchaseLimitInPercent).toFixed(), purchaseLimit, 'wrong purchase token limit');
+        });
+
+        it('should validate is running', async () => {
+            assert.isTrue(await crowdsale.isRunning.call(), 'should be running');
         });
     });
 
@@ -253,7 +261,7 @@ contract('GDPCrowdsale', (accounts) => {
             assert.equal(weiRaisedResult, correctWeiRaised, 'wrong weiRaised amount after ACC_2 purchase');
         });
 
-        it.only('should validate wallet balance after purchase', async () => {
+        it('should validate wallet balance after purchase', async () => {
             let walletAddr = await crowdsale.wallet.call();
             let walletFundsBefore = new BigNumber(await web3.eth.getBalance(walletAddr));
             assert.equal(walletFundsBefore.toFixed(), web3.toWei(100, "ether"), 'wallet balance should be 100 before tx');

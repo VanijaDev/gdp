@@ -44,7 +44,7 @@ contract RefundableCrowdsale is TimedCrowdsale, StagesCrowdsale {
    */  
    function refundEnabled() public view returns(bool) {
      bool icoSoftGoalReached = softCapReached();
-     bool icoTimeOver = hasEnded();
+     bool icoTimeOver = timeOver();
      bool vaultHasBalance = address(vault).balance > 0;
 
      return !icoSoftGoalReached && icoTimeOver && vaultHasBalance;

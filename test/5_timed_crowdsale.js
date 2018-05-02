@@ -28,7 +28,11 @@ contract('TimedCrowdsale', (accounts) => {
 
   describe('initial validation', () => {
     it('should validate ICO has not closed', async () => {
-      assert.isFalse(await crowdsale.hasEnded.call(), 'crowdsale should not be closed');
+      assert.isFalse(await crowdsale.timeOver.call(), 'crowdsale should not be closed');
+    });
+
+    it('should validate ICO time is running', async () => {
+      assert.isTrue(await crowdsale.timeRunning.call(), 'crowdsale should be running by time');
     });
   });
 
