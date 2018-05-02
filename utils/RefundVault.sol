@@ -14,7 +14,6 @@ contract RefundVault is Ownable {
   using SafeMath for uint256;
 
   mapping (address => uint256) public deposited;
-  address public wallet;
 
   event Refunded(address indexed beneficiary, uint256 weiAmount);
 
