@@ -28,10 +28,6 @@ contract TimedCrowdsale is Ownable {
     closingTime = _closingTime;
   }
 
-  function timeRunning() public view returns (bool) {
-    return now >= openingTime && now <= closingTime;
-  }
-
   function timeOver() public view returns (bool) {
     return now > closingTime;
   }
