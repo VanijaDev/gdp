@@ -118,6 +118,7 @@ contract StagesCrowdsale is Ownable {
   }
 
   function updateStageGoal(uint256 _stage, uint256 _stageGoal) public onlyOwner {
+    require(_stageGoal >= raisedInStages[_stage]);
     stageGoals[_stage] = _stageGoal.mul(uint(10)**18);
   }
 
@@ -152,13 +153,15 @@ contract StagesCrowdsale is Ownable {
     return(false, length - 1);
   }
   
-  function validateAndConvertStagesGoalsToWei(uint256[] _stageGoals) private pure returns (uint256[]) {
+  function validateAndConvertStagesGoalsToWei(uint256[] _stageGoals) private view returns (uint256[]) {
     uint256 length = _stageGoals.length;
     uint256[] memory result = new uint[](length);
     
     for(uint256 i = 0; i < length; i ++) {
       uint256 goal = _stageGoals[i];
-      require(goal > 0);      
+      require(goal > 0);
+      require(goal >= raisedInStages[i]);
+
       result[i] = goal.mul(uint(10)**18);
     }
     
