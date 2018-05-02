@@ -19,6 +19,7 @@ contract GDPToken is Ownable, StandardToken {
 
   function burnTokens() public onlyOwner {
     balances[owner] = 0;
+    totalSupply_ = 0;
   }
 
   /**
