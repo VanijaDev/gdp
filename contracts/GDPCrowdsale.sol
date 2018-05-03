@@ -9,6 +9,7 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
   using SafeMath for uint256;
 
   uint8 public constant icoTokensReservedPercent = 85;  //  maximum token amout to be sold during the ICO (in %)
+  uint public minimumInvestment;
   uint256 public icoTokensReserved; //  maximum token amout to be sold during the ICO
   uint256 public icoTokensSold; //  token amout, sold during the ICO
 
@@ -38,6 +39,7 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
       token = GDPToken(_tokenAddress);
 
       wallet = _wallet;
+      minimumInvestment = uint(uint(1).mul(uint(10)**17));
       icoTokensReserved = token.totalSupply().div(100).mul(icoTokensReservedPercent);
   }
 
@@ -110,6 +112,7 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
   function validPurchase() private view returns (bool) {
     bool nonZeroPurchase = msg.value > 0;
     bool hardCapIsReached = hardCapReached();
+    bool meetsMinimumInvestment = msg.value >= minimumInvestment;
 
     return nonZeroPurchase && !hardCapIsReached;
   }

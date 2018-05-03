@@ -103,6 +103,10 @@ contract('GDPCrowdsale', (accounts) => {
             assert.equal(new BigNumber(await token.balanceOf.call(crowdsale.address)).toFixed(), new BigNumber(await token.totalSupply.call()).toFixed(), 'owner should own total supply');
         });
 
+        it('should validate minimum investment value', async () => {
+            assert.equal(new BigNumber(await crowdsale.minimumInvestment.call()).toFixed(), web3.toWei(0.1, 'ether'), 'wrong minimum investment value');
+        });
+
         it('should validate token amount for crowdsale purchases amount', async () => {
             let icoPercent = await crowdsale.icoTokensReservedPercent.call();
             const reservedValidation = new BigNumber(await token.totalSupply.call() / 100 * icoPercent).toFixed();
