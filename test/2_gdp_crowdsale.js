@@ -129,6 +129,10 @@ contract('GDPCrowdsale', (accounts) => {
         it('should validate is running', async () => {
             assert.isTrue(await crowdsale.isRunning.call(), 'should be running');
         });
+
+        it('should not let kill until ICO is running', async () => {
+            await asserts.throws(crowdsale.killContract(), 'should not let kill while ICO is running');
+        });
     });
 
     describe('should validate manual transfer', () => {

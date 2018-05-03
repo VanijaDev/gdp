@@ -105,6 +105,11 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
     token.burnTokens();
   }
 
+  function killContract() public onlyOwner {
+    require(!isRunning());
+    selfdestruct(owner);
+  }
+
   /**
    * PRIVATE
    */
