@@ -104,5 +104,40 @@ contract('RefundableCrowdsale - new instance', (accounts) => {
       assert.isAbove((await web3.eth.getBalance(ACC_1)).toFixed(), ACC_1_AFTER_PURCHASE, 'wrong funds after refund');
     });
 
+    it('should not let not owner to kill ICO', async () => {
+      await asserts.throws(crowdsaleLocal.killContract({
+        from: ACC_1
+      }), 'not owner can not kill ICO');
+    });
+
+    it('should let kill when ICO is being finished', async () => {
+      await asserts.doesNotThrow(crowdsaleLocal.killContract(), 'should let kill when ICO is being finished');
+    });
+  });
+
+  describe('create new crowdsale', () => {
+    it('should verify tokens can be burned, when ICO is closed by time', async () => {
+      let crowdsaleLocal_1;
+      let tokenLocal_1;
+      let mock = CrowdsaleMock.crowdsaleMock();
+      let start = new BigNumber(await crowdsaleLocal.closingTime.call()).plus(new BigNumber(IncreaseTime.duration.minutes(2)));
+      let end = start.plus(new BigNumber(IncreaseTime.duration.days(1))).toFixed();
+
+      tokenLocal_1 = await GDPToken.new();
+      crowdsaleLocal_1 = await GDPCrowdsale.new(start, end, mock.rate, mock.stageGoals, mock.stageBonuses, mock.wallet, mock.softCap, mock.hardCap, tokenLocal_1.address);
+      await tokenLocal_1.transferOwnership(crowdsaleLocal_1.address);
+
+      await IncreaseTime.increaseTimeTo(end + IncreaseTime.duration.minutes(1));
+
+      await asserts.throws(crowdsaleLocal_1.burnTokens({
+        from: ACC_1
+      }), 'not owner can not burn tokens');
+
+      await assert.isAbove(new BigNumber(await tokenLocal_1.balanceOf(crowdsaleLocal_1.address)).toFixed(), 0, 'crowdsale should have tokens');
+
+      await asserts.doesNotThrow(crowdsaleLocal_1.burnTokens(), 'owner should be able to burn tokens');
+      await assert.equal(new BigNumber(await tokenLocal_1.balanceOf(crowdsaleLocal_1.address)).toFixed(), 0, 'crowdsale balance should be 0');
+
+    });
   });
 });
