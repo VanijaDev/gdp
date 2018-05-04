@@ -247,6 +247,17 @@ contract('GDPCrowdsale', (accounts) => {
     });
 
     describe('should validate purchase', () => {
+        it('should validate minimum purchase value', async () => {
+            await asserts.throws(crowdsale.sendTransaction({
+                from: ACC_1,
+                value: web3.toWei(0.001, 'ether')
+            }), 'purchase value is less, than minimum value');
+            await asserts.doesNotThrow(crowdsale.sendTransaction({
+                from: ACC_1,
+                value: web3.toWei(0.1, 'ether')
+            }), 'purchase value == minimum value, should be purchased');
+        });
+
         it('should validate weiRaised value', async () => {
             //  ACC_1
             await crowdsale.sendTransaction({
@@ -364,21 +375,22 @@ contract('GDPCrowdsale', (accounts) => {
             assert.equal(tokens.toFixed(), tokensCorrect.toFixed(), 'wrong token amount for ACC_1 after third purchase');
         });
 
-        it('should validate token purchase with 1 wei', async () => {
+        it('should validate token purchase with 0.1 ETH', async () => {
+            let purchaseWei = web3.toWei(0.1, 'ether');
             await crowdsale.sendTransaction({
                 from: ACC_1,
-                value: 1
+                value: purchaseWei
             });
 
             let rate = new BigNumber(await crowdsale.rate.call()).toFixed();
-            let basicAmount = new BigNumber(parseInt(1) * parseInt(rate));
+            let basicAmount = new BigNumber(parseInt(purchaseWei) * parseInt(rate));
 
             let bonus = new BigNumber(40);
             let bonusAmount = basicAmount / 100 * bonus;
 
             let tokensCorrect = new BigNumber(basicAmount).plus(bonusAmount);
             let tokens = new BigNumber(await token.balanceOf.call(ACC_1));
-            assert.equal(tokens.toFixed(), tokensCorrect.toFixed(), 'wrong token amount for 1 wei');
+            assert.equal(tokens.toFixed(), tokensCorrect.toFixed(), 'wrong token amount for 0.1 ETH');
 
         });
 

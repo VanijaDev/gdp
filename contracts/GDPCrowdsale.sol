@@ -113,12 +113,11 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
   /**
    * PRIVATE
    */
-
   function validPurchase() private view returns (bool) {
     bool nonZeroPurchase = msg.value > 0;
-    bool hardCapIsReached = hardCapReached();
     bool meetsMinimumInvestment = msg.value >= minimumInvestment;
+    bool hardCapIsReached = hardCapReached();
 
-    return nonZeroPurchase && !hardCapIsReached;
+    return nonZeroPurchase && meetsMinimumInvestment && !hardCapIsReached;
   }
 }
