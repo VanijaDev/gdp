@@ -131,10 +131,28 @@ contract('StagesCrowdsale', (accounts) => {
         from: ACC_1
       }), 'only owner can update individual goal');
 
+      await crowdsale.sendTransaction({
+        from: ACC_1,
+        value: web3.toWei(0.2, 'ether')
+      });
+
       await crowdsale.updateStageGoal(0, 12);
       assert.equal((new BigNumber(await crowdsale.stageGoals.call(0))).toFixed(), web3.toWei(12, 'ether'), 'wrong 0 stage goal after individual update');
       await crowdsale.updateStageGoal(2, 82);
       assert.equal((new BigNumber(await crowdsale.stageGoals.call(2))).toFixed(), web3.toWei(82, 'ether'), 'wrong 2 stage goal after individual update');
+    });
+  });
+
+  describe('validate wei raised', () => {
+    it('should validate wei raised in stage', async () => {
+      let wei = web3.toWei(0.2, 'ether');
+
+      await crowdsale.sendTransaction({
+        from: ACC_1,
+        value: wei
+      });
+
+      assert.equal(new BigNumber(await crowdsale.raisedInStage.call(0)).toFixed(), wei, 'wrong raised in stage value');
     });
   });
 

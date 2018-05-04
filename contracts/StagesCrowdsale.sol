@@ -94,6 +94,10 @@ contract StagesCrowdsale is Ownable {
     return stageGoals[stageIdx];
   }
 
+  function raisedInStage(uint8 _stage) public view returns(uint256) {
+    return raisedInStages[_stage];
+  }
+
   function currentStageIndex() public view returns(bool found, uint256 idx) {
     return stageForAmount(weiRaised, stageGoals);
   }
@@ -118,7 +122,7 @@ contract StagesCrowdsale is Ownable {
   }
 
   function updateStageGoal(uint256 _stage, uint256 _stageGoal) public onlyOwner {
-    require(_stageGoal >= raisedInStages[_stage]);
+    require(_stageGoal.mul(uint(10)**18) >= raisedInStages[_stage]);
     stageGoals[_stage] = _stageGoal.mul(uint(10)**18);
   }
 
