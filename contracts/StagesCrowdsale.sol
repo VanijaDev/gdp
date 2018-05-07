@@ -98,8 +98,19 @@ contract StagesCrowdsale is Ownable {
     return raisedInStages[_stage];
   }
 
+  /**
+   * @dev Returns whether current ICO stage was found and its index. Return last index if stage was not found.
+   */
   function currentStageIndex() public view returns(bool found, uint256 idx) {
-    return stageForAmount(weiRaised);
+    uint256 length = stageGoals.length;
+    
+    for(uint256 i = 0; i < length; i ++) {
+      if(raisedInStages[i] < stageGoals[i]) {
+          return (true, i);
+      }
+    }
+    
+    return(false, length - 1);
   }
 
   function currentStageBonus() public view returns(uint256) {
@@ -137,22 +148,6 @@ contract StagesCrowdsale is Ownable {
   /**
    * PRIVATE  
    */
-
-
-  /**
-   * @dev Returns whether current ICO stage was found and its index. Return last index if stage was not found.
-   */
-  function stageForAmount(uint256 _weiAmount) private view returns (bool, uint256) {
-    uint256 length = stageGoals.length;
-    
-    for(uint256 i = 0; i < length; i ++) {
-        if(raisedInStages[i] < stageGoals[i]) {
-            return (true, i);
-        }
-    }
-    
-    return(false, length - 1);
-  }
   
   function validateAndConvertStagesGoalsToWei(uint256[] _stageGoals) private view returns (uint256[]) {
     uint256 length = _stageGoals.length;
