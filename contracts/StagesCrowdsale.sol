@@ -99,7 +99,7 @@ contract StagesCrowdsale is Ownable {
   }
 
   function currentStageIndex() public view returns(bool found, uint256 idx) {
-    return stageForAmount(weiRaised, stageGoals);
+    return stageForAmount(weiRaised);
   }
 
   function currentStageBonus() public view returns(uint256) {
@@ -142,15 +142,12 @@ contract StagesCrowdsale is Ownable {
   /**
    * @dev Returns whether current ICO stage was found and its index. Return last index if stage was not found.
    */
-  function stageForAmount(uint256 _weiAmount, uint256[] _stageGoals) private pure returns (bool, uint256) {
-    uint256 length = _stageGoals.length;
-    uint256 goalSum;
+  function stageForAmount(uint256 _weiAmount) private view returns (bool, uint256) {
+    uint256 length = stageGoals.length;
     
     for(uint256 i = 0; i < length; i ++) {
-        goalSum += _stageGoals[i];
-        
-        if(_weiAmount < goalSum) {
-            return(true, i);
+        if(raisedInStages[i] < stageGoals[i]) {
+            return (true, i);
         }
     }
     
@@ -162,11 +159,11 @@ contract StagesCrowdsale is Ownable {
     uint256[] memory result = new uint[](length);
     
     for(uint256 i = 0; i < length; i ++) {
-      uint256 goal = _stageGoals[i];
+      uint256 goal = _stageGoals[i].mul(uint(10)**18);
       require(goal > 0);
       require(goal >= raisedInStages[i]);
 
-      result[i] = goal.mul(uint(10)**18);
+      result[i] = goal;
     }
     
     return result;
