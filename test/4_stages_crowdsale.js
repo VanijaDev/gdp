@@ -111,7 +111,7 @@ contract('StagesCrowdsale', (accounts) => {
   });
 
   describe('update stage goals', () => {
-    it('should validate updateStageGoals', async () => {
+    it('should updateStageGoals before any purchases', async () => {
       await crowdsale.updateStageGoals([11, 22, 33]);
 
       assert.equal((new BigNumber(await crowdsale.stageGoals.call(0))).toFixed(), web3.toWei(11, 'ether'), 'wrong 0 stage goal after update');
@@ -122,6 +122,81 @@ contract('StagesCrowdsale', (accounts) => {
       await asserts.throws(crowdsale.updateStageGoals([11, 22, 33], {
         from: ACC_1
       }), 'only owner can updateStageGoals');
+    });
+
+    it('should updateStageGoals before when on stage index 2', async () => {
+      // STAGE_GOALS = [2, 5, 4, 6, 7];
+      await crowdsale.sendTransaction({
+        from: ACC_1,
+        value: web3.toWei(8, 'ether')
+      });
+
+      let currentIdxResult = await crowdsale.currentStageIndex.call();
+      assert.isTrue(currentIdxResult[0], 'current index should be found');
+      assert.equal(new BigNumber(currentIdxResult[1]).toFixed(), 2, 'wrong stage index, should be 2');
+
+      await crowdsale.updateStageGoals([3, 6, 5]);
+
+      assert.equal((new BigNumber(await crowdsale.stageGoals.call(0))).toFixed(), web3.toWei(3, 'ether'), 'wrong 0 stage goal after update');
+      assert.equal((new BigNumber(await crowdsale.stageGoals.call(1))).toFixed(), web3.toWei(6, 'ether'), 'wrong 1 stage goal after update');
+      assert.equal((new BigNumber(await crowdsale.stageGoals.call(2))).toFixed(), web3.toWei(5, 'ether'), 'wrong 2 stage goal after update');
+      await asserts.throws(crowdsale.stageGoals.call(3), 'there should be no stage idx 4');
+
+      await asserts.throws(crowdsale.updateStageGoals([11, 22, 33], {
+        from: ACC_1
+      }), 'only owner can updateStageGoals');
+    });
+
+    it('should validate correct stage is being selected after purchase -> update stage goals -> purchase', async () => {
+      //  STAGE_GOALS = [2, 5, 4, 6, 7];
+
+      //  1
+      await crowdsale.sendTransaction({
+        from: ACC_1,
+        value: web3.toWei(8, 'ether')
+      });
+
+      let currentIdxResult = await crowdsale.currentStageIndex.call();
+      assert.isTrue(currentIdxResult[0], 'current index should be found');
+      assert.equal(new BigNumber(currentIdxResult[1]).toFixed(), 2, 'wrong stage index, should be 2');
+
+      await crowdsale.updateStageGoals([3, 6, 5, 6, 7]);
+
+      //  2
+      await crowdsale.sendTransaction({
+        from: ACC_1,
+        value: web3.toWei(9, 'ether')
+      });
+
+      currentIdxResult = await crowdsale.currentStageIndex.call();
+      assert.isTrue(currentIdxResult[0], 'current index should be found');
+      assert.equal(new BigNumber(currentIdxResult[1]).toFixed(), 3, 'wrong stage index, should be 3');
+    });
+
+    it('should validate correct stage is being selected after purchase -> update single stage goal -> purchase', async () => {
+      //  STAGE_GOALS = [2, 5, 4, 6, 7];
+
+      //  1
+      await crowdsale.sendTransaction({
+        from: ACC_1,
+        value: web3.toWei(8, 'ether')
+      });
+
+      let currentIdxResult = await crowdsale.currentStageIndex.call();
+      await assert.isTrue(currentIdxResult[0], 'current index should be found');
+      await assert.equal(new BigNumber(currentIdxResult[1]).toFixed(), 2, 'wrong stage index, should be 2');
+
+      await crowdsale.updateStageGoal(1, 6);
+
+      //  2
+      await crowdsale.sendTransaction({
+        from: ACC_1,
+        value: web3.toWei(5, 'ether')
+      });
+
+      currentIdxResult = await crowdsale.currentStageIndex.call();
+      await assert.isTrue(currentIdxResult[0], 'current index should be found');
+      await assert.equal(new BigNumber(currentIdxResult[1]).toFixed(), 3, 'wrong stage index, should be 3');
     });
   });
 
