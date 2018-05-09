@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18">
+	<defs>
+		<image width="18" height="18" id="img1" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAMAAABhEH5lAAAAAXNSR0IB2cksfwAAAMZQTFRFxMTEPz8/BwcHAAAABAQELCwszs7OVFRUREREBQUFBAQEBAQELi4uOTk5QkJCMTExhISEgYGBdHR0ZGRkPDw8MzMzqKiosbGx0dHRGBgYISEhCwsLHR0dhISEaWlpAQEBAAAAAAAAOjo6JycnExMTHh4eMjIyg4ODe3t7Y2NjV1dXOjo6TU1NX19fi4uLdnZ2XFxcLi4uVFRUY2NjXFxcR0dHLi4uAAAADAwMCQkJa2trVVVV3t7eT09PCQkJAwMDOTk539/fZsa99wAAAEJ0Uk5TCZby//qzFqGx+Pn2pYJ/lDIAAAAqsQAAAAAqmwAAVf6bAABsWigAABo9YyAAAAAASVsmABtFk2/w84mdBIjv+agNCKOcxQAAAHtJREFUeJxjYGBkYkYCLKxsDOzMaICDgRNdiIsBicPNw8vHz8yMJMQpICgkLIIiJComLiEphSIkLSMrJ8+MIqSgqKTMjCKkoqqmrqGphSykraOrp65vgCxkaGRsbGJqhmaWojmqWaQKWaALWTJYoQtZM9jY2iEL2Ts4AgCevQ9p8dU7KAAAAABJRU5ErkJggg=="/>
+	</defs>
+	<style>
+		tspan { white-space:pre }
+	</style>
+	<use id="Calque 4" href="#img1" x="0" y="0" />
+</svg>

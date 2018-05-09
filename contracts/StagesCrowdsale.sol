@@ -94,8 +94,23 @@ contract StagesCrowdsale is Ownable {
     return stageGoals[stageIdx];
   }
 
+  function raisedInStage(uint8 _stage) public view returns(uint256) {
+    return raisedInStages[_stage];
+  }
+
+  /**
+   * @dev Returns whether current ICO stage was found and its index. Return last index if stage was not found.
+   */
   function currentStageIndex() public view returns(bool found, uint256 idx) {
-    return stageForAmount(weiRaised, stageGoals);
+    uint256 length = stageGoals.length;
+    
+    for(uint256 i = 0; i < length; i ++) {
+      if(raisedInStages[i] < stageGoals[i]) {
+          return (true, i);
+      }
+    }
+    
+    return(false, length - 1);
   }
 
   function currentStageBonus() public view returns(uint256) {
@@ -118,6 +133,7 @@ contract StagesCrowdsale is Ownable {
   }
 
   function updateStageGoal(uint256 _stage, uint256 _stageGoal) public onlyOwner {
+    require(_stageGoal.mul(uint(10)**18) >= raisedInStages[_stage]);
     stageGoals[_stage] = _stageGoal.mul(uint(10)**18);
   }
 
@@ -132,34 +148,17 @@ contract StagesCrowdsale is Ownable {
   /**
    * PRIVATE  
    */
-
-
-  /**
-   * @dev Returns whether current ICO stage was found and its index. Return last index if stage was not found.
-   */
-  function stageForAmount(uint256 _weiAmount, uint256[] _stageGoals) private pure returns (bool, uint256) {
-    uint256 length = _stageGoals.length;
-    uint256 goalSum;
-    
-    for(uint256 i = 0; i < length; i ++) {
-        goalSum += _stageGoals[i];
-        
-        if(_weiAmount < goalSum) {
-            return(true, i);
-        }
-    }
-    
-    return(false, length - 1);
-  }
   
-  function validateAndConvertStagesGoalsToWei(uint256[] _stageGoals) private pure returns (uint256[]) {
+  function validateAndConvertStagesGoalsToWei(uint256[] _stageGoals) private view returns (uint256[]) {
     uint256 length = _stageGoals.length;
     uint256[] memory result = new uint[](length);
     
     for(uint256 i = 0; i < length; i ++) {
-      uint256 goal = _stageGoals[i];
-      require(goal > 0);      
-      result[i] = goal.mul(uint(10)**18);
+      uint256 goal = _stageGoals[i].mul(uint(10)**18);
+      require(goal > 0);
+      require(goal >= raisedInStages[i]);
+
+      result[i] = goal;
     }
     
     return result;

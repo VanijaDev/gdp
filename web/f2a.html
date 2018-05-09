@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>GDP Login</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link type="text/css" rel="stylesheet" href="assets/css/style.css" />
+    <script src='https://www.google.com/recaptcha/api.js'></script>
+  </head>
+  <body>
+    <header id="header">
+      <nav class="navbar navbar-expand-lg navbar-light">
+        <a class="navbar-brand" href="#"><img src="assets/images/gdp-logo.png"><img src="assets/images/gdp-logo-text.png"></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="dashboard_navbar">
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item active"><a href="#" class="nav-link"> Dashboard </a></li>
+            <li class="nav-item"><a href="#" class="nav-link"> Terms of Token Sale </a></li>
+            <li class="nav-item"><a href="#" class="nav-link"> Settings </a></li>
+            <li class="nav-item"><a href="#" class="nav-link"> 2FA </a></li>
+            <li class="nav-item"><button href="#" class="btn btn-menu"> Logout </button></li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+    <div class="main">
+      <div class="container">
+        <section class="bg-white rouneded-section pt-2 pb-5 mt-5">
+          <div class="row">
+            <div class="col-md-12">
+              <h3> Settings </h3>
+            </div>
+            <div class="col-md-12">
+              <ul class="nav tabs nav-tabs">
+                <li class="nav-item active"><a href="#" class="nav-link"> 2FA </a></li>
+                <li class="nav-item"><a href="#" class="nav-link"> Email and Password </a></li>
+                <li class="nav-item"><a href="#" class="nav-link"> Verification </a></li>
+                <li class="nav-item"><a href="#" class="nav-link"> Ethereum address </a></li>
+              </ul>
+            </div>
+            <div class="col-md-12 mt-2 mb-3">
+              <h3 align="center" class="slim-header"> Two-factor authentication <span class="red-text"> is disabled </span>  </h3>
+              <p align="center" class="text-size-extend-middle"> For extra account security, you can turn on two-fators<br/> authentification (2FA), We use Google Authentoficator<br/> for F2A </p>
+            </div>
+            <div class="col-md-6 number-block">
+              <div class="before-number"> 1 </div>
+              <p class="text-size-middle"> In order to use 2FA, scan the QR code to <br/> the right into the Google Authenticator <br/> App on your phone: </p>
+              <p class="notice-text"> <img class="float-left" src="assets/images/g-safe.png" /> <img class="float-right pt-0 pr-0" src="assets/images/qr-code-2.png" /> Google Authenticator <br/> available on Android Play Market<br/> and iOS App Store   </p>
+              <p class="text-size-middle mb-0">Or enter the backup key:</p>
+              <p class="text-size-extend-middle">K5LP JEXF TYPH D34N YNQ5 67SW</p>
+            </div>
+            <div class="col-md-6 number-block">
+              <div class="before-number"> 2 </div>
+              <p class="text-size-middle"> Input the six-digit code provided by <br/> the Google Authenticator app and <br/> your account password below, then click<br/> “Enable 2FA” </p>
+              <form>
+                <div class="form-group pb-2">
+                  <label for="g_authentication_code">Code from Google Authenticator App</label>
+                  <input type="text" required class="form-control" id="g_authentication_code" placeholder="Code">
+                </div>
+                <div class="from-group">
+                    <label for="g_authentication_password">Code from Google Authenticator App</label>
+                    <input type="password" required class="form-control" id="g_authentication_password" placeholder="Password">
+                </div>
+                <p class="text-size-small mt-4">Important:<br/> Before turning on 2FA, write down the backup key and keep it in a safe place. If your phone gets lost, stolen or erased, you will need this key to get back into your account.</p>
+                <div class="form-check mt-4">
+                  <input type="checkbox" required class="form-check-input hidden-chackbox" value="true" id="check_becked_key">
+                  <label class="form-check-label hidden-chackbox" for="check_becked_key">I have backed up my backup key </label>
+                </div>
+                <p class="submit-form-button">
+                  <button type="submit" class="btn btn-primary bg-purple rouneded-button">Enable F2A</button>
+                </p>
+              </form>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <footer id="footer">
+      <div class="container">
+        <nav>
+          <ul class="nav justify-content-center">
+            <li class="nav-item copyrights"><span>© 2018</span></li>
+            <li class="nav-item"> <a href="#"> Terms of Use </a> </li>
+            <li class="nav-item"> <a href="#"> Terms of Token Sale </a> </li>
+            <li class="nav-item"> <a href="#"> Terms of Privacy Police </a> </li>
+          </ul>
+        </nav>
+        <nav>
+          <ul class="nav justify-content-center social-navs">
+            <li class="nav-item"> <a href="#"><img src="assets/images/telegram.png"></a> </li>
+            <li class="nav-item"> <a href="#"><img src="assets/images/media-social.png"></a> </li>
+            <li class="nav-item"> <a href="#"><img src="assets/images/facebook-icon.png"></a> </li>
+            <li class="nav-item"> <a href="#"><img src="assets/images/twitter.png"></a> </li>
+            <li class="nav-item"> <a href="#"><img src="assets/images/linkedin.png"></a> </li>
+          </ul>
+        </nav>
+      </div>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  </body>
+</html>

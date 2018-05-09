@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.20;
 
 import '../node_modules/zeppelin-solidity/contracts/math/SafeMath.sol';
 import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
@@ -14,7 +14,6 @@ contract RefundVault is Ownable {
   using SafeMath for uint256;
 
   mapping (address => uint256) public deposited;
-  address public wallet;
 
   event Refunded(address indexed beneficiary, uint256 weiAmount);
 

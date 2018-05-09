@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 15" width="19" height="15">
+	<defs>
+		<image width="19" height="15" id="img1" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAPCAMAAAAxmgQeAAAAAXNSR0IB2cksfwAAAbZQTFRFwuD30ef58Pf92ev6vt73jsfymMzztdr37PX8yeT4mszyZLPvWa7ubbfvlcrzd7zxmMzzyeX4s9n2pdL1icXyvt737PX8nM/1V63uVazuXbDvbrjwdbvxxeH3g8HxdLvwY7Pvlcr0vN33lsv0yOP4zeb5W6/vWK3udbzxu933l8vzg8HxXK/vdrzxjsfymMzzd7zwlcnyicTylMrz3u/73+76t9v2Wq/uVazuW6/uY7Pvd7zwjsbxfr/wX7Hurdf14fD7rNX1qNT1fL/xVq3uZLTvdbvwdbvwoND0icXyVq3uVq3uc7rwk8rzk8rzy+X4sdn2ZrTwVqzuicXywN/2wN/23+752uz5p9P1ZLTvXrDvpNH01Oj41Oj45/L6sNf0b7nwdLvxy+X50Of5v9/4vd73weD4eL3xVq3uW6/uq9b20un5rtb0j8fyqdT1qNT0e77wZrTvVqzuWK3ulcv08fj98fj9fr/wcLjvotDzqtT0dbvxV63ukMjz5PH7rtb0fr/wcLjvcbnvaLXvV63uZrTvns/0yuX45PH7s9n0rtb1fb/xW6/uYLDvisXyn8/0t9v2z+f4N0l1FQAAAJJ0Uk5TAQoIAAAAAAAAE3Hb98ZNEisoCXNsDQSR+//vxsA2D7HkfxcAADP2+sBRDKHyvFoPAAB1iRQDXPf+8tWUXJrmQgAGSbD82zkAC5v7/sQpAANR5v+fEgAADmrd72oCAABRv8wiAAAAKcX99mkAAAAAM6nZ/fmdCAAAAAc/t/yWEiBgf6vU+t1vFAAFNaPx6IcoBgA++ku9AAAA3klEQVR4nGNgYGRiZmFlY+fg4OTi5uHl4xcQZBASFhEFi4mJS0hKSkpJy8gyyMkrKCqxsimrqKpJgoC6hiaDlrakjq6evoGhEVhIksfYhMHUzFzSwtLK2sYWImZn78Dg6OTsIokEXN3cGTw8vbyRxXx8/Rj8AwKRhYKCQ0IZwsIjIi0QYlHRMbEMcXHxCV4IscSk5GSGlNS09Ay4UGZWdnY2Q05uXn5BYRFEqLiktKysjCGnvKKyqroGLKRTW1cGEqtvaGxqbgGJWLS2tXeAxTq7unvAinr7+idMBIsBANvJPdalnceqAAAAAElFTkSuQmCC"/>
+	</defs>
+	<style>
+		tspan { white-space:pre }
+	</style>
+	<use id="Calque 5" href="#img1" x="0" y="0" />
+</svg>

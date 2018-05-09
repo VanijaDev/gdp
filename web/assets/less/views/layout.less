@@ -1,0 +1,306 @@
+.login-header{
+  padding-top: 35px;
+  padding-bottom: 35px;
+
+  &.row{
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+.header-text{
+  font-size: 20px;
+  color: #002033;
+  margin-bottom: 0;
+  font-weight: bold;
+}
+
+.signup-section{
+  padding: 10px;
+  font-size: 16px;
+}
+.signup-block{
+  background-color: #FFF;
+  -webkit-box-shadow: 0 0 10px 0 @shadowColor;
+  box-shadow: 0 0 10px 0 @shadowColor;
+  max-width: @loginFormWidth;
+  margin: auto;
+  padding: 15px;
+
+  a{
+    padding: 10px 15px;
+  }
+
+  .nav-item{
+    width: 50%;
+    text-align: center;
+    border-bottom: solid 1px @lightGrayBorder;
+
+    a{
+      color: @linkColor;
+    }
+  }
+
+  .nav-item.active{
+    border-bottom: solid 1px;
+    a{
+      color: @textColor;
+    }
+  }
+}
+
+.social-signup{
+  padding-top: 25px;
+  padding-bottom: 35px;
+  margin-bottom: 10px;
+  text-align: center;
+  border-bottom: solid 1px @lightedGrayBorder;
+}
+
+.signup-content{
+  padding-top: 15px;
+  padding-bottom: 25px;
+
+  form{
+    max-width: 330px;
+    margin: auto;
+  }
+
+  .btn-primary{
+    min-width: 120px;
+    background-color: @buttonPrimaryColor;
+    .border-radius(30px);
+  }
+
+  .google-captcha-section{
+    text-align: center;
+    padding-bottom: 15px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .forgot-password{
+    font-size: 14px;
+    padding-top: 20px;
+    margin-bottom: 0;
+
+    a{
+        color: @greyLinks;
+    }
+  }
+}
+
+#header{
+  .navbar{
+    padding-top: 12px;
+    padding-bottom: 12px;
+    background-color: #FFF;
+
+    .nav-item{
+      padding-left: 15px;
+      padding-right: 15px;
+      font-size: 15px;
+      text-transform: uppercase;
+
+      a{
+        color: @greyLinks;
+      }
+    }
+
+    .nav-item.active{
+      a{
+        color: @darkBlue;
+      }
+    }
+
+    .btn-menu{
+      background-color: @Purple;
+      color: #FFF;
+      text-transform: uppercase;
+      min-width: 120px;
+      .border-radius(30px);
+    }
+  }
+  .navbar-dark{
+    color: #FFF;
+    padding-top: 20px;
+    padding-bottom: 20px;
+
+    .navbar-notice{
+      text-transform: uppercase;
+      font-size: 18px;
+      margin-bottom: 0;
+
+      .light-text{
+        opacity: 0.5;
+      }
+    }
+
+    &.bg-dark-blue{
+      background-color: @darkBlue;
+    }
+  }
+}
+
+.main{
+  .container{
+    padding-top: 15px;
+    padding-bottom: 15px;
+  }
+
+  .rouneded-section{
+    color: #333;
+    .border-radius(5px);
+  }
+
+  h2{
+    margin-top: 10px;
+    margin-bottom: 15px;
+    font-weight: bold;
+    font-size: 26px;
+  }
+
+  h3{
+    font-weight: bold;
+    font-size: 22px;
+  }
+
+  p{
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+
+  .purple-header{
+    background-color: @Purple;
+    color: #FFF;
+    padding: 30px 15px;
+    font-size: 16px;
+    .border-top-radius(5px);
+
+    p{
+      font-size: 16px;
+    }
+  }
+
+  .btn-whitelist{
+    border: solid 1px #ccc;
+    padding: 15px;
+    color: #444;
+    position: relative;
+    text-align: center;
+    min-width: 300px;
+
+    .img-before{
+      position: absolute;
+      top: 18px;
+      left: 15px;
+    }
+  }
+
+  .nav.tabs{
+    border-bottom: solid 1px #ccc;
+    padding-bottom: 10px;
+
+    .nav-item{
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+  }
+
+  .row, nav{
+    padding: 15px 25px;
+  }
+
+  .card-buy-token{
+    font-size: 16px;
+    border: solid 1px #DDD;
+    background-color: #f9f9f9;
+    .border-radius(3px);
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+
+    p{
+      font-size: 16px;
+    }
+  }
+
+  .currency-usd{
+    position: relative;
+  }
+
+  .currency-usd:after{
+    display: inline-block;
+    content: '$';
+    position: absolute;
+    top: 5px;
+    right: 12px;
+    font-size: 20px;
+    color: @greyLinks;
+  }
+
+
+  .card{
+    padding-top: 15px;
+    padding-bottom: 15px;
+
+    .card-title{
+      font-size: 28px;
+      margin-bottom: 0px;
+    }
+
+    &.bg-purple,&.bg-light-purple{
+      border: none;
+    }
+  }
+}
+
+#footer{
+  padding-top: 20px;
+  padding-bottom: 15px;
+  font-size: 16px;
+  color: @greyLinks;
+
+  a{
+    color: @greyLinks;
+  }
+
+  .nav{
+
+    .nav-item{
+      min-width: 120px;
+      text-align: center;
+      padding-left: 15px;
+      padding-right: 15px;
+
+      &.copyrights{
+        text-align: left;
+      }
+    }
+
+    &.social-navs{
+      padding-top: 10px;
+
+      .nav-item{
+        min-width: 0;
+
+        img{
+          height: 15px;
+        }
+      }
+    }
+  }
+
+}
+
+.border-left{
+  border-left: solid 1px @grayBorder;
+}
+.bg-purple{
+  background-color: @Purple;
+  color: #FFF;
+}
+.bg-light-purple{
+  color: #333;
+  background-color: @lightPurple;
+}

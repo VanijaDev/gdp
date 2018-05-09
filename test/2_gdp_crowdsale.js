@@ -49,6 +49,10 @@ contract('GDPCrowdsale before ICO started', (accounts) => {
         let open = new BigNumber(await crowdsale.openingTime.call()).toFixed();
         assert.equal(open, openUp, 'opening time is wrong after update');
     });
+
+    it('should validate is not running', async () => {
+        assert.isFalse(await crowdsale.isRunning.call(), 'should not be running before ICO was started');
+    });
 });
 
 
@@ -99,6 +103,10 @@ contract('GDPCrowdsale', (accounts) => {
             assert.equal(new BigNumber(await token.balanceOf.call(crowdsale.address)).toFixed(), new BigNumber(await token.totalSupply.call()).toFixed(), 'owner should own total supply');
         });
 
+        it('should validate minimum investment value', async () => {
+            assert.equal(new BigNumber(await crowdsale.minimumInvestment.call()).toFixed(), web3.toWei(0.1, 'ether'), 'wrong minimum investment value');
+        });
+
         it('should validate token amount for crowdsale purchases amount', async () => {
             let icoPercent = await crowdsale.icoTokensReservedPercent.call();
             const reservedValidation = new BigNumber(await token.totalSupply.call() / 100 * icoPercent).toFixed();
@@ -116,6 +124,14 @@ contract('GDPCrowdsale', (accounts) => {
             let purchaseLimit = new BigNumber(await crowdsale.icoTokensReserved.call()).toFixed();
 
             assert.equal(new BigNumber(totalSupply / 100 * purchaseLimitInPercent).toFixed(), purchaseLimit, 'wrong purchase token limit');
+        });
+
+        it('should validate is running', async () => {
+            assert.isTrue(await crowdsale.isRunning.call(), 'should be running');
+        });
+
+        it('should not let kill until ICO is running', async () => {
+            await asserts.throws(crowdsale.killContract(), 'should not let kill while ICO is running');
         });
     });
 
@@ -231,6 +247,17 @@ contract('GDPCrowdsale', (accounts) => {
     });
 
     describe('should validate purchase', () => {
+        it('should validate minimum purchase value', async () => {
+            await asserts.throws(crowdsale.sendTransaction({
+                from: ACC_1,
+                value: web3.toWei(0.001, 'ether')
+            }), 'purchase value is less, than minimum value');
+            await asserts.doesNotThrow(crowdsale.sendTransaction({
+                from: ACC_1,
+                value: web3.toWei(0.1, 'ether')
+            }), 'purchase value == minimum value, should be purchased');
+        });
+
         it('should validate weiRaised value', async () => {
             //  ACC_1
             await crowdsale.sendTransaction({
@@ -251,6 +278,20 @@ contract('GDPCrowdsale', (accounts) => {
             correctWeiRaised = parseInt(ACC_1_WEI_SENT) + parseInt(ACC_2_WEI_SENT);
             weiRaisedResult = new BigNumber(await crowdsale.weiRaised.call()).toFixed();
             assert.equal(weiRaisedResult, correctWeiRaised, 'wrong weiRaised amount after ACC_2 purchase');
+        });
+
+        it('should validate wallet balance after purchase', async () => {
+            let walletAddr = await crowdsale.wallet.call();
+            let walletFundsBefore = new BigNumber(await web3.eth.getBalance(walletAddr));
+            assert.equal(walletFundsBefore.toFixed(), web3.toWei(100, "ether"), 'wallet balance should be 100 before tx');
+
+            await crowdsale.sendTransaction({
+                from: ACC_1,
+                value: ACC_1_WEI_SENT
+            });
+
+            assert.equal(new BigNumber(await web3.eth.getBalance(walletAddr)).toFixed(), walletFundsBefore.plus(ACC_1_WEI_SENT).toFixed(), 'wallet balance should be walletFundsBefore + ACC_1_WEI_SENT after tx');
+
         });
 
         it('validate token amount bought for eth', async () => {
@@ -334,21 +375,22 @@ contract('GDPCrowdsale', (accounts) => {
             assert.equal(tokens.toFixed(), tokensCorrect.toFixed(), 'wrong token amount for ACC_1 after third purchase');
         });
 
-        it('should validate token purchase with 1 wei', async () => {
+        it('should validate token purchase with 0.1 ETH', async () => {
+            let purchaseWei = web3.toWei(0.1, 'ether');
             await crowdsale.sendTransaction({
                 from: ACC_1,
-                value: 1
+                value: purchaseWei
             });
 
             let rate = new BigNumber(await crowdsale.rate.call()).toFixed();
-            let basicAmount = new BigNumber(parseInt(1) * parseInt(rate));
+            let basicAmount = new BigNumber(parseInt(purchaseWei) * parseInt(rate));
 
             let bonus = new BigNumber(40);
             let bonusAmount = basicAmount / 100 * bonus;
 
             let tokensCorrect = new BigNumber(basicAmount).plus(bonusAmount);
             let tokens = new BigNumber(await token.balanceOf.call(ACC_1));
-            assert.equal(tokens.toFixed(), tokensCorrect.toFixed(), 'wrong token amount for 1 wei');
+            assert.equal(tokens.toFixed(), tokensCorrect.toFixed(), 'wrong token amount for 0.1 ETH');
 
         });
 
