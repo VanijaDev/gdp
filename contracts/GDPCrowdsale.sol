@@ -100,7 +100,8 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
       uint256 singleBounty = _amounts[i];
       require(singleBounty > 0);
       require(icoTokensSold.add(singleBounty) <= icoTokensReserved);
-      require(token.increaseApproval(_addresses[i], _amounts[i]) == true);
+      require(icoTokensSold.add(singleBounty).add(manuallySentTokens) <= tokenTotalSupply);
+      token.transfer(_addresses[i], _amounts[i]);
 
       icoTokensSold = icoTokensSold.add(singleBounty);
     }
