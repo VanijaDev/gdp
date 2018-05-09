@@ -18,6 +18,9 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
   // The token being sold
   GDPToken public token;
 
+  uint256 private manuallySentTokens;
+  uint256 private tokenTotalSupply;
+
   modifier validTransfer(address _beneficiary, uint256 _amount) {
     require(_beneficiary != address(0));
     require(_amount > 0);
@@ -40,7 +43,8 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
 
       wallet = _wallet;
       minimumInvestment = uint(uint(1).mul(uint(10)**17));
-      icoTokensReserved = token.totalSupply().div(100).mul(icoTokensReservedPercent);
+      tokenTotalSupply = token.totalSupply();
+      icoTokensReserved = tokenTotalSupply.div(100).mul(icoTokensReservedPercent);
   }
 
   /**
@@ -58,7 +62,9 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
     require(validPurchase());
 
     uint256 tokens = tokenAmount(msg.value);
+
     require(icoTokensSold.add(tokens) <= icoTokensReserved);
+    require(icoTokensSold.add(tokens).add(manuallySentTokens) <= tokenTotalSupply);
 
     icoTokensSold = icoTokensSold.add(tokens);
 
@@ -70,7 +76,13 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
     TokenPurchase(msg.sender, _beneficiary, msg.value, tokens);
   }
 
+/**
+  * @dev Initially tokens will be substracted from reserved tokens == 15% 
+ */
   function manualTransfer(address _beneficiary, uint256 _amount) onlyOwner onlyWhileOpen isNotPaused validTransfer(_beneficiary, _amount) public {
+    require(manuallySentTokens.add(_amount).add(icoTokensSold) <= tokenTotalSupply);
+
+    manuallySentTokens = manuallySentTokens.add(_amount);
     token.transfer(_beneficiary, _amount);
     ManualTransfer(msg.sender, _beneficiary, _amount);
   }
@@ -78,7 +90,7 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
   /**
    * @dev Owner can add multiple bonus beneficiaries.
    * @param _addresses Beneficiary addresses
-   * @param _amounts Beneficiary bonus amounts
+   * @param _amounts Beneficiary bonus amounts, icoTokensSold used
    */
   function addBounties(address[] _addresses, uint256[] _amounts) public onlyOwner {
     uint256 addrLength = _addresses.length ;
