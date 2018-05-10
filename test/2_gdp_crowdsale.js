@@ -163,6 +163,11 @@ contract('GDPCrowdsale', (accounts) => {
             let crowdsaleTokensAfterTransfer = new BigNumber(await token.balanceOf.call(crowdsale.address));
             assert.equal(balance.toFixed(), new BigNumber(crowdsaleTokens.minus(crowdsaleTokensAfterTransfer)).toFixed(), 'wrong token amount substracted from crowdsale');
         });
+
+        it('should validate manual transfer can not exceed total token supply', async () => {
+            let total = new BigNumber(await token.totalSupply.call());
+            await asserts.throws(crowdsale.manualTransfer(ACC_1, total.plus(new BigNumber(1))), 'should not allow transfer more than token total supply');
+        });
     });
 
     describe('add bounties functional', () => {
@@ -191,58 +196,42 @@ contract('GDPCrowdsale', (accounts) => {
 
         it('should validate correct value is being set after adding single bounty', async () => {
             const TOKENS = new BigNumber(web3.toWei(3, 'ether'));
-
-            assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), 0, 'initial allowance ACC_1 should be 0');
-
             await crowdsale.addBounties([ACC_1], [TOKENS]);
-            assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), TOKENS.toFixed(), 'wrong bounty ACC_1 amount');
+
+            assert.equal(new BigNumber(await token.balanceOf(ACC_1)).toFixed(), TOKENS.toFixed(), 'wrong bounty ACC_1 amount');
         });
 
         it('should validate correct values are being set after adding multiple bounties', async () => {
             const TOKENS_1 = new BigNumber(web3.toWei(3, 'ether'));
             const TOKENS_2 = new BigNumber(web3.toWei(1, 'ether'));
 
-            assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), 0, 'initial allowance ACC_1 should be 0');
-            assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_2)).toFixed(), 0, 'initial allowance ACC_2 should be 0');
-
             await crowdsale.addBounties([ACC_1, ACC_2], [TOKENS_1, TOKENS_2]);
-            assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), TOKENS_1.toFixed(), 'wrong ACC_1 bounty amount');
-            assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_2)).toFixed(), TOKENS_2.toFixed(), 'wrong ACC_2 bounty amount');
+            assert.equal(new BigNumber(await token.balanceOf(ACC_1)).toFixed(), TOKENS_1.toFixed(), 'wrong ACC_1 bounty amount');
+            assert.equal(new BigNumber(await token.balanceOf(ACC_2)).toFixed(), TOKENS_2.toFixed(), 'wrong ACC_2 bounty amount');
         });
 
         it('should validate multiple bounties for single address are being combined', async () => {
             const TOKENS_1 = new BigNumber(web3.toWei(3, 'ether'));
             const TOKENS_2 = new BigNumber(web3.toWei(1, 'ether'));
 
-            assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), 0, 'initial allowance ACC_1 before adding should be 0');
             await crowdsale.addBounties([ACC_1, ACC_2], [TOKENS_1, TOKENS_2]);
             await crowdsale.addBounties([ACC_1], [TOKENS_2]);
-            assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), TOKENS_1.plus(TOKENS_2).toFixed(), 'wrong ACC_1 bounty amount after multiple adding');
+            assert.equal(new BigNumber(await token.balanceOf(ACC_1)).toFixed(), TOKENS_1.plus(TOKENS_2).toFixed(), 'wrong ACC_1 bounty amount after multiple adding');
         });
 
-        it('should validate bounty tokens can be spent normally', async () => {
-            const TOKENS_1 = new BigNumber(web3.toWei(3, 'ether'));
+        it('should validate single bounty can not exceed ico reserved tokens', async () => {
+            let reserved = new BigNumber(await crowdsale.icoTokensReserved.call());
+            let wrongAmount = reserved.plus(new BigNumber(1));
 
-            await crowdsale.addBounties([ACC_1], [TOKENS_1]);
-            await assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), TOKENS_1.toFixed(), 'initial allowance ACC_1 should be TOKEN_1');
-            await assert.equal(new BigNumber(await token.balanceOf(ACC_2)).toFixed(), 0, 'initial allowance ACC_2 should be 0');
-
-            await token.transferFrom(crowdsale.address, ACC_2, TOKENS_1, {
-                from: ACC_1
-            });
-            await assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), 0, 'allowance ACC_1 should be 0 after transfer');
-            await assert.equal(new BigNumber(await token.balanceOf(ACC_2)).toFixed(), TOKENS_1.toFixed(), 'allowance ACC_2 should be TOKEN_1 after transfer');
+            await asserts.throws(crowdsale.addBounties([ACC_1], [wrongAmount]), 'should fail, because single bounty exceeds ico reserved tokens');
         });
 
-        it('should validate account without bounty tokens has allowance == 0, can not transfer bounty tokens', async () => {
-            const TOKENS_1 = new BigNumber(web3.toWei(3, 'ether'));
+        it('should validate multiple bounties can not exceed ico reserved tokens', async () => {
+            let reserved = new BigNumber(await crowdsale.icoTokensReserved.call());
+            let wrongAmount = reserved.plus(new BigNumber(2));
+            let wrongHalf = wrongAmount.div(new BigNumber(2));
 
-            await assert.equal(new BigNumber(await token.balanceOf(ACC_1)).toFixed(), 0, 'initial allowance ACC_1 should be 0');
-            await asserts.throws(token.transferFrom(crowdsale.address, ACC_2, TOKENS_1, {
-                from: ACC_1
-            }), 'should fail because ACC_1 has no bounty');
-            await assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_1)).toFixed(), 0, 'allowance ACC_1 should be 0 after transfer');
-            await assert.equal(new BigNumber(await token.allowance(crowdsale.address, ACC_2)).toFixed(), 0, 'allowance ACC_2 should be 0 after transfer');
+            await asserts.throws(crowdsale.addBounties([ACC_1, ACC_2], [wrongHalf, wrongHalf]), 'should fail, because multiple bounties can not exceed ico reserved tokens');
         });
     });
 
@@ -466,6 +455,19 @@ contract('GDPCrowdsale', (accounts) => {
                 })
             );
         });
+
+        it('should validate purchase is faulted if all tokens were sent manually', async () => {
+            await crowdsale.manualTransfer(ACC_2, web3.toWei(99999000, 'ether'));
+
+            await asserts.throws(crowdsale.sendTransaction({
+                from: ACC_1,
+                value: web3.toWei(50, 'ether')
+            }), 'should throw because not enough tokens to buy');
+        });
+
+        //  buy -> manually transfer more than limit
+
+
     });
 
     describe('vault', () => {

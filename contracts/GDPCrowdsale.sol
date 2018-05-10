@@ -18,6 +18,9 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
   // The token being sold
   GDPToken public token;
 
+  uint256 private manuallyTransferredTokens;
+  uint256 private tokenTotalSupply;
+
   modifier validTransfer(address _beneficiary, uint256 _amount) {
     require(_beneficiary != address(0));
     require(_amount > 0);
@@ -40,7 +43,8 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
 
       wallet = _wallet;
       minimumInvestment = uint(uint(1).mul(uint(10)**17));
-      icoTokensReserved = token.totalSupply().div(100).mul(icoTokensReservedPercent);
+      tokenTotalSupply = token.totalSupply();
+      icoTokensReserved = tokenTotalSupply.div(100).mul(icoTokensReservedPercent);
   }
 
   /**
@@ -58,7 +62,9 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
     require(validPurchase());
 
     uint256 tokens = tokenAmount(msg.value);
+
     require(icoTokensSold.add(tokens) <= icoTokensReserved);
+    require(icoTokensSold.add(tokens).add(manuallyTransferredTokens) <= tokenTotalSupply);
 
     icoTokensSold = icoTokensSold.add(tokens);
 
@@ -70,7 +76,15 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
     TokenPurchase(msg.sender, _beneficiary, msg.value, tokens);
   }
 
+/**
+  * @dev Initially tokens will be substracted from reserved token amount 
+   * @param _beneficiary Beneficiary address
+   * @param _amount token amount with decimals (e.g. 238000000000000000000 to transfer 238 tokens)
+ */
   function manualTransfer(address _beneficiary, uint256 _amount) onlyOwner onlyWhileOpen isNotPaused validTransfer(_beneficiary, _amount) public {
+    require(manuallyTransferredTokens.add(_amount).add(icoTokensSold) <= tokenTotalSupply);
+
+    manuallyTransferredTokens = manuallyTransferredTokens.add(_amount);
     token.transfer(_beneficiary, _amount);
     ManualTransfer(msg.sender, _beneficiary, _amount);
   }
@@ -78,7 +92,7 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
   /**
    * @dev Owner can add multiple bonus beneficiaries.
    * @param _addresses Beneficiary addresses
-   * @param _amounts Beneficiary bonus amounts
+   * @param _amounts Beneficiary bonus amounts; icoTokensSold used; token amount with decimals (e.g. 238000000000000000000 to transfer 238 tokens)
    */
   function addBounties(address[] _addresses, uint256[] _amounts) public onlyOwner {
     uint256 addrLength = _addresses.length ;
@@ -86,11 +100,13 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
 
     for (uint256 i = 0; i < addrLength; i ++) {
       uint256 singleBounty = _amounts[i];
+
       require(singleBounty > 0);
       require(icoTokensSold.add(singleBounty) <= icoTokensReserved);
-      require(token.increaseApproval(_addresses[i], _amounts[i]) == true);
+      require(icoTokensSold.add(singleBounty).add(manuallyTransferredTokens) <= tokenTotalSupply);
 
       icoTokensSold = icoTokensSold.add(singleBounty);
+      token.transfer(_addresses[i], _amounts[i]);
     }
   }
 
