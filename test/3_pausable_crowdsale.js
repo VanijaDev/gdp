@@ -74,7 +74,8 @@ contract('PausableCrowdsale', (accounts) => {
       }), 'purchase can not be performed, while crowdsale is paused');
 
       //  manual transfer
-      await asserts.throws(crowdsale.manualTransfer(0x123, 111), 'manual transfer can not be performed, while crowdsale is paused');
+      await asserts.throws(crowdsale.manualTransferPrivateReservedTokens(0x123, 111), 'manual transfer can not be performed, while crowdsale is paused');
+      await asserts.throws(crowdsale.manualTransferICORecerved(0x123, 111), 'manual transfer can not be performed, while crowdsale is paused');
     });
   });
 
