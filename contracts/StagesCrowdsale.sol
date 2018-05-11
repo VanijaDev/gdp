@@ -32,6 +32,49 @@ contract StagesCrowdsale is Ownable {
   }
 
   /**
+   * @dev Returns amount of basic and bonus token amount.
+   */
+  function previewTokenAmount(uint256 _weiAmount) public view returns(uint256[2]) {
+    //  return basic, bonus
+    require(_weiAmount <= hardCap - weiRaised);
+    
+    bool previewStageFound;
+    uint256 previewStageIdxCurrent;
+    (previewStageFound, previewStageIdxCurrent) = currentStageIndex();
+    uint256 previewStageCount = stagesCount();
+    
+    uint256 previewBasicAmount;
+    uint256 previewBonus;
+    uint256 previewBonusAmount;
+    uint256 previewWeiToAdd = _weiAmount;
+    
+    if(!previewStageFound) {
+      return [previewWeiToAdd.mul(rate), 0];
+    }
+    
+    for(uint256 i = previewStageIdxCurrent; i < previewStageCount; i ++) {
+        uint256 stageWeiToAddMax = stageGoals[i] - raisedInStages[i];
+        uint256 stageWeiToAdd = (previewWeiToAdd < stageWeiToAddMax) ? previewWeiToAdd : stageWeiToAddMax;
+        
+        uint256 currentBasicAmount = stageWeiToAdd.mul(rate);
+        previewBasicAmount = previewBasicAmount.add(currentBasicAmount); 
+        previewBonus = stageBonuses[i];
+        previewBonusAmount = previewBonusAmount.add(currentBasicAmount.div(100).mul(previewBonus));
+        
+        previewWeiToAdd = previewWeiToAdd.sub(stageWeiToAdd);
+        
+        if(previewWeiToAdd == 0) {
+          return [previewBasicAmount, previewBonusAmount];
+        }
+    }
+    
+    //  if here, wei amount started in stage, but is more that last goal. Calculate tokens just for base rate.
+    previewBasicAmount = previewBasicAmount.add(previewWeiToAdd.mul(rate));
+    
+    return [previewBasicAmount, previewBonusAmount];
+  }
+
+  /**
    * @dev Returns token count for provided wei amount. Takes in count stage goals.
    */
   function tokenAmount(uint256 _weiAmount) internal returns(uint256) {

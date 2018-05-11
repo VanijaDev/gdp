@@ -105,23 +105,14 @@
         return;
       }
 
-      let tokenPurchaseEvent = ico.TokenPurchase();
-      let rate = 1700;
-
-      tokenPurchaseEvent.watch((error, result) => {
-        if (error) {
-          handleError(error);
-          return;
+      ico.previewTokenAmount.call((web3.toWei(eth, "ether")), (err, res) => {
+        if (err) {
+          handleError(err);
+          reject(err);
         }
 
-        let totalAmount = result.args.amount;
-
-        let basicAmount = rate * eth;
-        document.getElementById("eth-counting").innerText = basicAmount;
-
-        let bonusAmount = parseInt(totalAmount * 10 ** -18 - basicAmount);
-        document.getElementById("bonus-token-amount").innerText = bonusAmount;
-
+        document.getElementById("eth-counting").innerText = web3.fromWei(res[0], 'ether');
+        document.getElementById("bonus-token-amount").innerText = web3.fromWei(res[1], 'ether');
       });
     }
 
