@@ -91,27 +91,8 @@
           console.warn("Metamask used, but no logged in");
           return;
         }
-
-        accounts = accs;
-        let coinbase = accounts[0];
-        document.getElementById("CurrentAddressID").innerText = coinbase;
-
-        showTokensQuantity(coinbase);
       });
     }
-
-    function showTokensQuantity(address) {
-      token.balanceOf.call(address, (err, res) => {
-        if (err) {
-          handleError(err);
-          return;
-        }
-
-        // console.log(web3.fromWei(res.toNumber(), "ether"));
-        document.getElementById("TokenQuantity").innerText = web3.fromWei(res.toNumber(), "ether");
-      });
-    }
-
 
     /**
      * Actions
@@ -124,26 +105,23 @@
         return;
       }
 
-      let rate;
-      let bonus;
-      createRatePromise().then((resolve) => {
-        rate = resolve.toNumber();
-        console.log("rate: ", rate);
-        return createBonusPromise();
-      }).then((resolve) => {
-        bonus = resolve.toNumber()
-        console.log("bonus: ", bonus);
-      }).then(() => {
-        let originalAmount = eth * rate;
-        let bonusAmount = originalAmount / 100 * bonus;
-        console.log('eth: ', eth);
-        console.log('originalAmount: ', originalAmount);
-        console.log('bonusAmount: ', bonusAmount);
+      let tokenPurchaseEvent = ico.TokenPurchase();
+      let rate = 1700;
 
-        document.getElementById("eth-counting").innerText = originalAmount;
+      tokenPurchaseEvent.watch((error, result) => {
+        if (error) {
+          handleError(error);
+          return;
+        }
+
+        let totalAmount = result.args.amount;
+
+        let basicAmount = rate * eth;
+        document.getElementById("eth-counting").innerText = basicAmount;
+
+        let bonusAmount = parseInt(totalAmount * 10 ** -18 - basicAmount);
         document.getElementById("bonus-token-amount").innerText = bonusAmount;
-      }).catch((reject) => {
-        handleError(Error("rate reject"));
+
       });
     }
 
@@ -307,12 +285,6 @@
         </div>
       </section>
       <section class="bg-white rouneded-section mt-4 pb-3">
-        <div>
-          <span>CurrentAddress: </span>
-          <span id="CurrentAddressID"></span>
-          <span style="margin-left: 10px">tokens: </span>
-          <span id="TokenQuantity"></span>
-        </div>
         <div class="row">
           <div class="col-md-12">
             <h3> My tokens: </h3>
