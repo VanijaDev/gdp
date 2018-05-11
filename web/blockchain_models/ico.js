@@ -1,6 +1,6 @@
 class ICO {
     constructor() {
-        this.address = "0xc168b5c70cfede9799fff71b5627d6cb6ffd5cbe";
+        this.address = "0xb09ee5a6e25d18a5de3104ed85f919ec04b2b019";
         this.abi = [{
                 "constant": false,
                 "inputs": [{
@@ -31,10 +31,10 @@ class ICO {
             {
                 "constant": true,
                 "inputs": [],
-                "name": "isRunning",
+                "name": "minimumInvestment",
                 "outputs": [{
                     "name": "",
-                    "type": "bool"
+                    "type": "uint256"
                 }],
                 "payable": false,
                 "stateMutability": "view",
@@ -138,6 +138,18 @@ class ICO {
                 "type": "function"
             },
             {
+                "constant": true,
+                "inputs": [],
+                "name": "hasStarted",
+                "outputs": [{
+                    "name": "",
+                    "type": "bool"
+                }],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
                 "constant": false,
                 "inputs": [{
                     "name": "_stageGoals",
@@ -147,6 +159,18 @@ class ICO {
                 "outputs": [],
                 "payable": false,
                 "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "timeOver",
+                "outputs": [{
+                    "name": "",
+                    "type": "bool"
+                }],
+                "payable": false,
+                "stateMutability": "view",
                 "type": "function"
             },
             {
@@ -216,6 +240,21 @@ class ICO {
                 "outputs": [],
                 "payable": false,
                 "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [{
+                    "name": "_stage",
+                    "type": "uint8"
+                }],
+                "name": "raisedInStage",
+                "outputs": [{
+                    "name": "",
+                    "type": "uint256"
+                }],
+                "payable": false,
+                "stateMutability": "view",
                 "type": "function"
             },
             {
@@ -356,18 +395,6 @@ class ICO {
                 "outputs": [{
                     "name": "",
                     "type": "uint256"
-                }],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "constant": true,
-                "inputs": [],
-                "name": "hasEnded",
-                "outputs": [{
-                    "name": "",
-                    "type": "bool"
                 }],
                 "payable": false,
                 "stateMutability": "view",
@@ -536,7 +563,28 @@ class ICO {
                         "type": "uint256"
                     }
                 ],
-                "name": "ManualTransfer",
+                "name": "ManualTransferOfPrivatelyReservedTokens",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [{
+                        "indexed": true,
+                        "name": "from",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": true,
+                        "name": "to",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "name": "amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "ManualTransferOfICOReservedTokens",
                 "type": "event"
             },
             {
@@ -590,7 +638,24 @@ class ICO {
                         "type": "uint256"
                     }
                 ],
-                "name": "manualTransfer",
+                "name": "manualTransferPrivateReservedTokens",
+                "outputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [{
+                        "name": "_beneficiary",
+                        "type": "address"
+                    },
+                    {
+                        "name": "_amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "manualTransferICORecerved",
                 "outputs": [],
                 "payable": false,
                 "stateMutability": "nonpayable",
@@ -614,9 +679,30 @@ class ICO {
                 "type": "function"
             },
             {
+                "constant": true,
+                "inputs": [],
+                "name": "isRunning",
+                "outputs": [{
+                    "name": "",
+                    "type": "bool"
+                }],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
                 "constant": false,
                 "inputs": [],
                 "name": "burnTokens",
+                "outputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [],
+                "name": "killContract",
                 "outputs": [],
                 "payable": false,
                 "stateMutability": "nonpayable",
