@@ -1,6 +1,6 @@
 class ICO {
     constructor() {
-        this.address = "0xb09ee5a6e25d18a5de3104ed85f919ec04b2b019";
+        this.address = "0xd56a9d9be22f2dea91751dc60c9912fc63a5510c";
         this.abi = [{
                 "constant": false,
                 "inputs": [{
@@ -383,6 +383,21 @@ class ICO {
                 "outputs": [{
                     "name": "",
                     "type": "uint256"
+                }],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [{
+                    "name": "_weiAmount",
+                    "type": "uint256"
+                }],
+                "name": "previewTokenAmount",
+                "outputs": [{
+                    "name": "",
+                    "type": "uint256[2]"
                 }],
                 "payable": false,
                 "stateMutability": "view",

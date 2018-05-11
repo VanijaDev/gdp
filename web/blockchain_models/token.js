@@ -1,6 +1,6 @@
 class Token {
     constructor() {
-        this.address = "0x52c44d88cdb17c1a1b9b06e3286d7ca00e8925ca";
+        this.address = "0x522f6f9cbfcccb3407766eb68228f422cc3ce9f4";
         this.abi = [{
                 "constant": true,
                 "inputs": [],
