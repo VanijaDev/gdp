@@ -155,4 +155,14 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
 
     return nonZeroPurchase && meetsMinimumInvestment && !hardCapIsReached;
   }
+
+  /**
+   *  OVERRIDEN
+   */
+
+   function updateClosingTime(uint256 _closingTime) public onlyOwner {
+     require(isRunning());
+
+     super.updateClosingTime(_closingTime);
+  }
 }
