@@ -593,6 +593,34 @@ contract('GDPCrowdsale', (accounts) => {
         });
     });
 
+    describe('closing time', () => {
+        it('should  not let update to NOT owner', async () => {
+            let latestTime = LatestTime.latestTime();
+            let openUp = latestTime + IncreaseTime.duration.days(3);
+            let closeUp = openUp + IncreaseTime.duration.days(2);
+
+            await asserts.throws(crowdsale.updateClosingTime(closeUp, {
+                from: ACC_1
+            }), 'only owner can updateClosingTime');
+        });
+
+        it('should not let update if hardCap was reached', async () => {
+            let hardCap = new BigNumber(await crowdsale.hardCap.call());
+
+            await crowdsale.sendTransaction({
+                from: ACC_1,
+                value: hardCap
+            });
+
+            let latestTime = LatestTime.latestTime();
+            let openUp = latestTime + IncreaseTime.duration.days(3);
+            let closeUp = openUp + IncreaseTime.duration.days(2);
+
+            await asserts.throws(crowdsale.updateClosingTime(closeUp), 'closingTime can not be updated if hardCap was reached');
+
+        });
+    });
+
     describe('events', () => {
         it('should get TokenPurchase event on purchase', async () => {
             let tx = await crowdsale.sendTransaction({

@@ -116,7 +116,7 @@ contract('RefundableCrowdsale - new instance', (accounts) => {
   });
 
   describe('create new crowdsale', () => {
-    it('should verify tokens can be burned, when ICO is closed by time', async () => {
+    it('should verify: 1) tokens can be burned, when ICO is closed by time; 2) should not let update if time is over;', async () => {
       let crowdsaleLocal_1;
       let tokenLocal_1;
       let mock = CrowdsaleMock.crowdsaleMock();
@@ -129,6 +129,7 @@ contract('RefundableCrowdsale - new instance', (accounts) => {
 
       await IncreaseTime.increaseTimeTo(end + IncreaseTime.duration.minutes(1));
 
+      //  1) tokens can be burned, when ICO is closed by time;
       await asserts.throws(crowdsaleLocal_1.burnTokens({
         from: ACC_1
       }), 'not owner can not burn tokens');
@@ -137,6 +138,13 @@ contract('RefundableCrowdsale - new instance', (accounts) => {
 
       await asserts.doesNotThrow(crowdsaleLocal_1.burnTokens(), 'owner should be able to burn tokens');
       await assert.equal(new BigNumber(await tokenLocal_1.balanceOf(crowdsaleLocal_1.address)).toFixed(), 0, 'crowdsale balance should be 0');
+
+      // 2) should not let update if time is over
+      let latestTime = LatestTime.latestTime();
+      let openUp = latestTime + IncreaseTime.duration.days(3);
+      let closeUp = openUp + IncreaseTime.duration.weeks(2);
+
+      await asserts.throws(crowdsaleLocal_1.updateClosingTime(closeUp), 'closingTime can not be updated if time is over');
 
     });
   });
