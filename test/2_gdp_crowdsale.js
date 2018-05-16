@@ -137,35 +137,35 @@ contract('GDPCrowdsale', (accounts) => {
 
     describe('should validate manual transfer', () => {
         it('should validate owner can transfer manually reserved 15% of tokens', async () => {
-            const TOKENS = new BigNumber(web3.toWei(3, 'ether')).toFixed();
+            const TOKENS = 3;
             let crowdsaleTokens = new BigNumber(await token.balanceOf.call(crowdsale.address));
 
             await asserts.doesNotThrow(crowdsale.manualTransferPrivateReservedTokens(ACC_1, TOKENS));
         });
 
         it('should validate owner can not exceed reserved 15% of tokens for transfer manually', async () => {
-            const TOKENS = new BigNumber(web3.toWei(30000000, 'ether')).toFixed();
+            const TOKENS = 30000000;
             let crowdsaleTokens = new BigNumber(await token.balanceOf.call(crowdsale.address));
 
             await asserts.throws(crowdsale.manualTransferPrivateReservedTokens(ACC_1, TOKENS));
         });
 
         it('should validate only owner transfer manually', async () => {
-            const TOKENS = new BigNumber(web3.toWei(3, 'ether')).toFixed();
+            const TOKENS = 3;
 
             await asserts.throws(crowdsale.manualTransferPrivateReservedTokens(ACC_1, TOKENS, {
                 from: ACC_1
             }));
         });
 
-        it('should validate corrent token amount after owner transfered manually reserved 15% of tokens', async () => {
-            const TOKENS = new BigNumber(web3.toWei(3, 'ether'));
+        it('should validate current token amount after owner transfered manually reserved 15% of tokens', async () => {
+            const TOKENS = 3;
             let crowdsaleTokens = new BigNumber(await token.balanceOf.call(crowdsale.address));
 
             crowdsale.manualTransferPrivateReservedTokens(ACC_1, TOKENS);
 
             let balance = new BigNumber(await token.balanceOf(ACC_1));
-            assert.equal(balance.toFixed(), TOKENS.toFixed(), 'wrong ACC_1 token amount after manual transfer');
+            assert.equal(balance.toFixed(), new BigNumber(web3.toWei(TOKENS, 'ether')).toFixed(), 'wrong ACC_1 token amount after manual transfer');
 
             let crowdsaleTokensAfterTransfer = new BigNumber(await token.balanceOf.call(crowdsale.address));
             assert.equal(balance.toFixed(), new BigNumber(crowdsaleTokens.minus(crowdsaleTokensAfterTransfer)).toFixed(), 'wrong token amount substracted from crowdsale');
@@ -175,31 +175,31 @@ contract('GDPCrowdsale', (accounts) => {
             let reservedBefore = new BigNumber(await crowdsale.icoTokensReserved.call());
             let soldBefore = new BigNumber(await crowdsale.icoTokensSold.call());
 
-            const TOKENS = new BigNumber(web3.toWei(3, 'ether'));
+            const TOKENS = 3;
             crowdsale.manualTransferICORecerved(ACC_1, TOKENS);
 
             let reservedAfter = new BigNumber(await crowdsale.icoTokensReserved.call());
             let soldAfter = new BigNumber(await crowdsale.icoTokensSold.call());
 
-            await assert.equal(soldBefore.plus(TOKENS).toFixed(), soldAfter.toFixed(), "wrong amount of tokens after manual transfer in soldAfter");
+            await assert.equal(soldBefore.plus(new BigNumber(web3.toWei(TOKENS, 'ether'))).toFixed(), soldAfter.toFixed(), "wrong amount of tokens after manual transfer in soldAfter");
 
         });
 
         it('should validate corrent token amount after owner transfered manually reserved 15% of tokens', async () => {
-            const TOKENS = new BigNumber(web3.toWei(3, 'ether'));
+            const TOKENS = 3;
             let crowdsaleTokens = new BigNumber(await token.balanceOf.call(crowdsale.address));
 
             crowdsale.manualTransferICORecerved(ACC_1, TOKENS);
 
             let balance = new BigNumber(await token.balanceOf(ACC_1));
-            assert.equal(balance.toFixed(), TOKENS.toFixed(), 'wrong ACC_1 token amount after manual transfer reserved 15% of tokens');
+            assert.equal(balance.toFixed(), new BigNumber(web3.toWei(TOKENS, 'ether')).toFixed(), 'wrong ACC_1 token amount after manual transfer reserved 15% of tokens');
 
             let crowdsaleTokensAfterTransfer = new BigNumber(await token.balanceOf.call(crowdsale.address));
             assert.equal(balance.toFixed(), new BigNumber(crowdsaleTokens.minus(crowdsaleTokensAfterTransfer)).toFixed(), 'wrong token amount substracted from crowdsale');
         });
 
         it('should validate owner can not exceed reserved ICO 85% of tokens for transfer manually', async () => {
-            const TOKENS = new BigNumber(web3.toWei(90000000, 'ether')).toFixed();
+            const TOKENS = 90000000;
             let crowdsaleTokens = new BigNumber(await token.balanceOf.call(crowdsale.address));
 
             await asserts.throws(crowdsale.manualTransferICORecerved(ACC_1, TOKENS));
@@ -208,51 +208,51 @@ contract('GDPCrowdsale', (accounts) => {
 
     describe('add bounties functional', () => {
         it('should validate only owner can add boundaries', async () => {
-            const TOKENS = new BigNumber(web3.toWei(3, 'ether'));
+            const TOKENS = 3;
             await asserts.throws(crowdsale.addBounties([ACC_1], [TOKENS], {
                 from: ACC_1
             }), 'only owner can add bounty');
         });
 
         it('should validate input values are correct', async () => {
-            const TOKENS = new BigNumber(web3.toWei(3, 'ether'));
+            const TOKENS = 3;
             await asserts.throws(crowdsale.addBounties([ACC_1], [TOKENS, TOKENS]), 'wrong input params');
         });
 
         it('should validate owner is able to add single bounty', async () => {
-            const TOKENS = new BigNumber(web3.toWei(3, 'ether'));
+            const TOKENS = 3;
             await asserts.doesNotThrow(crowdsale.addBounties([ACC_1], [TOKENS]), 'owner should be able to add single bounty');
         });
 
         it('should validate owner is able to add multiple bounties', async () => {
-            const TOKENS = new BigNumber(web3.toWei(3, 'ether'));
-            const TOKENS_1 = new BigNumber(web3.toWei(1, 'ether'));
+            const TOKENS = 3;
+            const TOKENS_1 = 1;
             await asserts.doesNotThrow(crowdsale.addBounties([ACC_1, ACC_2], [TOKENS, TOKENS_1]), 'owner should be able to add multiple bounties');
         });
 
         it('should validate correct value is being set after adding single bounty', async () => {
-            const TOKENS = new BigNumber(web3.toWei(3, 'ether'));
+            const TOKENS = 3;
             await crowdsale.addBounties([ACC_1], [TOKENS]);
 
-            assert.equal(new BigNumber(await token.balanceOf(ACC_1)).toFixed(), TOKENS.toFixed(), 'wrong bounty ACC_1 amount');
+            assert.equal(new BigNumber(await token.balanceOf(ACC_1)).toFixed(), new BigNumber(web3.toWei(TOKENS, 'ether')).toFixed(), 'wrong bounty ACC_1 amount');
         });
 
         it('should validate correct values are being set after adding multiple bounties', async () => {
-            const TOKENS_1 = new BigNumber(web3.toWei(3, 'ether'));
-            const TOKENS_2 = new BigNumber(web3.toWei(1, 'ether'));
+            const TOKENS_1 = 3;
+            const TOKENS_2 = 1;
 
             await crowdsale.addBounties([ACC_1, ACC_2], [TOKENS_1, TOKENS_2]);
-            assert.equal(new BigNumber(await token.balanceOf(ACC_1)).toFixed(), TOKENS_1.toFixed(), 'wrong ACC_1 bounty amount');
-            assert.equal(new BigNumber(await token.balanceOf(ACC_2)).toFixed(), TOKENS_2.toFixed(), 'wrong ACC_2 bounty amount');
+            assert.equal(new BigNumber(await token.balanceOf(ACC_1)).toFixed(), new BigNumber(web3.toWei(TOKENS_1, 'ether')).toFixed(), 'wrong ACC_1 bounty amount');
+            assert.equal(new BigNumber(await token.balanceOf(ACC_2)).toFixed(), new BigNumber(web3.toWei(TOKENS_2, 'ether')).toFixed(), 'wrong ACC_2 bounty amount');
         });
 
         it('should validate multiple bounties for single address are being combined', async () => {
-            const TOKENS_1 = new BigNumber(web3.toWei(3, 'ether'));
-            const TOKENS_2 = new BigNumber(web3.toWei(1, 'ether'));
+            const TOKENS_1 = 3;
+            const TOKENS_2 = 1;
 
             await crowdsale.addBounties([ACC_1, ACC_2], [TOKENS_1, TOKENS_2]);
             await crowdsale.addBounties([ACC_1], [TOKENS_2]);
-            assert.equal(new BigNumber(await token.balanceOf(ACC_1)).toFixed(), TOKENS_1.plus(TOKENS_2).toFixed(), 'wrong ACC_1 bounty amount after multiple adding');
+            assert.equal(new BigNumber(await token.balanceOf(ACC_1)).toFixed(), new BigNumber(web3.toWei(TOKENS_1, 'ether')).plus(new BigNumber(web3.toWei(TOKENS_2, 'ether'))).toFixed(), 'wrong ACC_1 bounty amount after multiple adding');
         });
 
         it('should validate single bounty can not exceed ico reserved tokens', async () => {
@@ -493,7 +493,7 @@ contract('GDPCrowdsale', (accounts) => {
         });
 
         it('should validate purchase is faulted if all tokens were sent manually', async () => {
-            await crowdsale.manualTransferICORecerved(ACC_2, web3.toWei(84999900, 'ether'));
+            await crowdsale.manualTransferICORecerved(ACC_2, 84999900);
 
             await asserts.throws(crowdsale.sendTransaction({
                 from: ACC_1,
@@ -640,7 +640,8 @@ contract('GDPCrowdsale', (accounts) => {
         });
 
         it('should get ManualTransferOfPrivatelyReservedTokens event on manual transfer', async () => {
-            let tx = await crowdsale.manualTransferPrivateReservedTokens(ACC_1, web3.toWei(10, 'ether'));
+            const TOKENS = 10;
+            let tx = await crowdsale.manualTransferPrivateReservedTokens(ACC_1, TOKENS);
 
             let events = tx.logs;
             let purchaseEvent = events[0];
@@ -649,11 +650,12 @@ contract('GDPCrowdsale', (accounts) => {
             assert.equal(purchaseEvent.event, 'ManualTransferOfPrivatelyReservedTokens', 'wrong event name');
             assert.equal(purchaseEvent.args.from, OWNER, 'wrong purchaser');
             assert.equal(purchaseEvent.args.to, ACC_1, 'wrong beneficiary');
-            assert.equal(new BigNumber(purchaseEvent.args.amount).toFixed(), web3.toWei(10, 'ether'), 'wrong amount');
+            assert.equal(new BigNumber(purchaseEvent.args.amount).toFixed(), web3.toWei(TOKENS, 'ether'), 'wrong amount');
         });
 
         it('should get ManualTransferOfICOReservedTokens event on manual transfer', async () => {
-            let tx = await crowdsale.manualTransferICORecerved(ACC_1, web3.toWei(50, 'ether'));
+            const TOKENS = 50;
+            let tx = await crowdsale.manualTransferICORecerved(ACC_1, TOKENS);
 
             let events = tx.logs;
             let purchaseEvent = events[0];
@@ -662,7 +664,7 @@ contract('GDPCrowdsale', (accounts) => {
             assert.equal(purchaseEvent.event, 'ManualTransferOfICOReservedTokens', 'wrong event name');
             assert.equal(purchaseEvent.args.from, OWNER, 'wrong purchaser');
             assert.equal(purchaseEvent.args.to, ACC_1, 'wrong beneficiary');
-            assert.equal(new BigNumber(purchaseEvent.args.amount).toFixed(), web3.toWei(50, 'ether'), 'wrong amount');
+            assert.equal(new BigNumber(purchaseEvent.args.amount).toFixed(), web3.toWei(TOKENS, 'ether'), 'wrong amount');
         });
 
         it('should get CrowdsaleRestored event on restore', async () => {

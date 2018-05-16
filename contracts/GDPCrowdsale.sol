@@ -84,34 +84,36 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
  /**
   * @dev Token transfer from reserved 15% 
   * @param _beneficiary Beneficiary address
-  * @param _amount token amount with decimals (e.g. 238000000000000000000 to transfer 238 tokens)
+  * @param _amount token amount
   */
   function manualTransferPrivateReservedTokens(address _beneficiary, uint256 _amount) onlyOwner onlyWhileOpen isNotPaused validTransfer(_beneficiary, _amount) public {
-    require(privatelyTransferred.add(_amount) <= privatelyTransferReserved);
+    uint256 amountConverted = _amount.mul(uint(10)**18);
+    require(privatelyTransferred.add(amountConverted) <= privatelyTransferReserved);
 
-    privatelyTransferred = privatelyTransferred.add(_amount);
-    token.transfer(_beneficiary, _amount);
-    ManualTransferOfPrivatelyReservedTokens(msg.sender, _beneficiary, _amount);
+    privatelyTransferred = privatelyTransferred.add(amountConverted);
+    token.transfer(_beneficiary, amountConverted);
+    ManualTransferOfPrivatelyReservedTokens(msg.sender, _beneficiary, amountConverted);
   }
 
  /**
   * @dev Token transfer from reserved 85% recerved for ICO 
   * @param _beneficiary Beneficiary address
-  * @param _amount token amount with decimals (e.g. 238000000000000000000 to transfer 238 tokens)
+  * @param _amount token amount
   */
   function manualTransferICORecerved(address _beneficiary, uint256 _amount) onlyOwner onlyWhileOpen isNotPaused validTransfer(_beneficiary, _amount) public {
-    require(icoTokensSold.add(_amount) <= icoTokensReserved);
-    require(icoTokensSold.add(_amount).add(privatelyTransferred) <= tokenTotalSupply);
+    uint256 amountConverted = _amount.mul(uint(10)**18);
+    require(icoTokensSold.add(amountConverted) <= icoTokensReserved);
+    require(icoTokensSold.add(amountConverted).add(privatelyTransferred) <= tokenTotalSupply);
 
-    icoTokensSold = icoTokensSold.add(_amount);
-    token.transfer(_beneficiary, _amount);
-    ManualTransferOfICOReservedTokens(msg.sender, _beneficiary, _amount);
+    icoTokensSold = icoTokensSold.add(amountConverted);
+    token.transfer(_beneficiary, amountConverted);
+    ManualTransferOfICOReservedTokens(msg.sender, _beneficiary, amountConverted);
   }
 
   /**
    * @dev Owner can add multiple bonus beneficiaries.
    * @param _addresses Beneficiary addresses
-   * @param _amounts Beneficiary bonus amounts; icoTokensSold used; token amount with decimals (e.g. 238000000000000000000 to transfer 238 tokens)
+   * @param _amounts Beneficiary bonus amounts; icoTokensSold used;
    */
   function addBounties(address[] _addresses, uint256[] _amounts) public onlyOwner {
     uint256 addrLength = _addresses.length ;
@@ -119,13 +121,15 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
 
     for (uint256 i = 0; i < addrLength; i ++) {
       uint256 singleBounty = _amounts[i];
-
       require(singleBounty > 0);
-      require(icoTokensSold.add(singleBounty) <= icoTokensReserved);
-      require(icoTokensSold.add(singleBounty).add(privatelyTransferred) <= tokenTotalSupply);
 
-      icoTokensSold = icoTokensSold.add(singleBounty);
-      token.transfer(_addresses[i], _amounts[i]);
+      uint256 singleBountyConverted = singleBounty.mul(uint(10)**18);
+
+      require(icoTokensSold.add(singleBountyConverted) <= icoTokensReserved);
+      require(icoTokensSold.add(singleBountyConverted).add(privatelyTransferred) <= tokenTotalSupply);
+
+      icoTokensSold = icoTokensSold.add(singleBountyConverted);
+      token.transfer(_addresses[i], singleBountyConverted);
     }
   }
 
