@@ -1,29 +1,12 @@
-#sudo: required
-#dist: trusty
-#language: node_js
-#node_js: 8
-#install:
-#  - "npm install"
-#  - "npm run ganache-cli > /dev/null &"
-#script:
-#  - "npm run test"
-
-
-
-
-
-
+sudo: required
+dist: trusty
 language: node_js
-node_js:
-  - "5.6.0"
-before_script:
-  - npm install
-  - export DISPLAY=:99.0 
-  - sh -e /etc/init.d/xvfb start
+node_js: 8
+install:
+ - "npm install"
+ - "npm run testrpc > /dev/null &"
 script:
-  #  - "jshint *.js lib"
-after_script:
-  - npm run-script build
-  - npm run-script test-coveralls
-  - cd test/node && npm install && node app.js
-
+ - "npm run test"
+ addons:
+    apt:
+      update: true
