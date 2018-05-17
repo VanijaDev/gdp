@@ -1,20 +1,36 @@
 {
   "name": "gdp",
   "version": "1.0.0",
-  "description": "",
+  "description": "ICO for Goods Digital Passport GDP token",
   "main": "truffle-config.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "truffle test",
+    "compile": "truffle compile",
+    "truffle": "truffle",
+    "ganache-cli": "ganache-cli"
   },
-  "keywords": [],
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VanijaDev/gdp.git"
+  },
+  "keywords": [
+    "GDP",
+    "gdpassport",
+    "goods digital passport"
+  ],
+  "author": "Ivan Solomichev <ivan.solomichev@gmail.com>",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/VanijaDev/gdp/issues"
+  },
+  "homepage": "https://github.com/VanijaDev/gdp#readme",
   "dependencies": {
     "bignumber.js": "^7.0.1",
     "openzeppelin-solidity": "1.9.0",
-    "truffle-hdwallet-provider": "0.0.5"
+    "truffle-hdwallet-provider": "0.0.5",
+    "ganache-cli": "^6.1.0"
   }
 }
