@@ -1,6 +1,6 @@
 class Token {
     constructor() {
-        this.address = "0x522f6f9cbfcccb3407766eb68228f422cc3ce9f4";
+        this.address = "0x95f1cddc414e3f065e9ed30f1c9c5db9519c74fd";
         this.abi = [{
                 "constant": true,
                 "inputs": [],
@@ -109,7 +109,7 @@ class Token {
                 }],
                 "name": "balanceOf",
                 "outputs": [{
-                    "name": "balance",
+                    "name": "",
                     "type": "uint256"
                 }],
                 "payable": false,

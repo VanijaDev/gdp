@@ -31,8 +31,8 @@ module.exports = function (deployer, network, accounts) {
         HARD_CAP = 5;
         STAGE_GOALS = [1, 1, 1, 1, 1];
         WALLET = "0x83a93da7f8bd243efbc54b73c3808451804c9ebb"; //     Wallet in Metamask;
-        start = 1524143500;
-        end = 1524153500;
+        start = 1526580491;
+        end = 1526660491;
     }
 
     console.log('\n\n\nnetwork: ', network);

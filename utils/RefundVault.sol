@@ -1,7 +1,7 @@
-pragma solidity ^0.4.20;
+pragma solidity ^0.4.23;
 
-import '../node_modules/zeppelin-solidity/contracts/math/SafeMath.sol';
-import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
+import '../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol';
+import '../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol';
 
 
 /**
@@ -39,6 +39,6 @@ contract RefundVault is Ownable {
     
     deposited[_investor] = 0;
     _investor.transfer(depositedValue);
-    Refunded(_investor, depositedValue);
+    emit Refunded(_investor, depositedValue);
   }
 }

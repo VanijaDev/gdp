@@ -1,4 +1,4 @@
-pragma solidity ^0.4.20;
+pragma solidity ^0.4.23;
 
 import './GDPToken.sol';
 import './PausableCrowdsale.sol';
@@ -38,7 +38,7 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
   event ManualTransferOfPrivatelyReservedTokens(address indexed from, address indexed to, uint256 amount);
   event ManualTransferOfICOReservedTokens(address indexed from, address indexed to, uint256 amount);
 
-  function GDPCrowdsale(uint256 _openingTime, uint256 _closingTime, uint256 _basicRate, uint256[] _stageGoals, uint256[] _stageBonuses, address _wallet, uint256 _softCap, uint256 _hardCap, address _tokenAddress)
+  constructor(uint256 _openingTime, uint256 _closingTime, uint256 _basicRate, uint256[] _stageGoals, uint256[] _stageBonuses, address _wallet, uint256 _softCap, uint256 _hardCap, address _tokenAddress)
     RefundableCrowdsale(_softCap, _hardCap, _openingTime, _closingTime, _basicRate, _stageGoals, _stageBonuses) public {
       require(_tokenAddress != address(0));
       require(_wallet != address(0));
@@ -78,7 +78,7 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
     wallet.transfer(msg.value);
     forwardFunds(msg.value);
 
-    TokenPurchase(msg.sender, _beneficiary, msg.value, tokens);
+    emit TokenPurchase(msg.sender, _beneficiary, msg.value, tokens);
   }
 
  /**
@@ -92,7 +92,7 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
 
     privatelyTransferred = privatelyTransferred.add(amountConverted);
     token.transfer(_beneficiary, amountConverted);
-    ManualTransferOfPrivatelyReservedTokens(msg.sender, _beneficiary, amountConverted);
+    emit ManualTransferOfPrivatelyReservedTokens(msg.sender, _beneficiary, amountConverted);
   }
 
  /**
@@ -107,7 +107,7 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
 
     icoTokensSold = icoTokensSold.add(amountConverted);
     token.transfer(_beneficiary, amountConverted);
-    ManualTransferOfICOReservedTokens(msg.sender, _beneficiary, amountConverted);
+    emit ManualTransferOfICOReservedTokens(msg.sender, _beneficiary, amountConverted);
   }
 
   /**

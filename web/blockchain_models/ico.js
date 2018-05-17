@@ -1,6 +1,6 @@
 class ICO {
     constructor() {
-        this.address = "0xd56a9d9be22f2dea91751dc60c9912fc63a5510c";
+        this.address = "0x8e684c9c82c40c1710fc8a8a48e78b29d85115d7";
         this.abi = [{
                 "constant": false,
                 "inputs": [{
@@ -225,18 +225,6 @@ class ICO {
                 "constant": false,
                 "inputs": [],
                 "name": "restoreCrowdsale",
-                "outputs": [],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "constant": false,
-                "inputs": [{
-                    "name": "_closingTime",
-                    "type": "uint256"
-                }],
-                "name": "updateClosingTime",
                 "outputs": [],
                 "payable": false,
                 "stateMutability": "nonpayable",
@@ -718,6 +706,18 @@ class ICO {
                 "constant": false,
                 "inputs": [],
                 "name": "killContract",
+                "outputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [{
+                    "name": "_closingTime",
+                    "type": "uint256"
+                }],
+                "name": "updateClosingTime",
                 "outputs": [],
                 "payable": false,
                 "stateMutability": "nonpayable",

@@ -19,8 +19,8 @@ contract('GDPToken', (accounts) => {
         it('should validate limit for total supply', async () => {
             const TOTAL_SUPPLY_LIMIT = 100000000; //  use without decimals
 
-            let limit = await token.totalSupply.call();
-            assert.equal(web3.fromWei(limit.toNumber(), 'ether'), TOTAL_SUPPLY_LIMIT, 'limits are different');
+            let limit = new BigNumber(await token.totalSupply.call()).toNumber();
+            assert.equal(web3.fromWei(limit, 'ether'), TOTAL_SUPPLY_LIMIT, 'limits are different');
         });
     });
 

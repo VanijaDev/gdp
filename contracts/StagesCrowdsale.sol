@@ -1,7 +1,7 @@
-pragma solidity ^0.4.20;
+pragma solidity ^0.4.23;
 
-import '../node_modules/zeppelin-solidity/contracts/math/SafeMath.sol';
-import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
+import '../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol';
+import '../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol';
 
 
 contract StagesCrowdsale is Ownable {
@@ -17,7 +17,7 @@ contract StagesCrowdsale is Ownable {
   uint256[] public stageBonuses;
   mapping (uint256 => uint256) private raisedInStages;
 
-  function StagesCrowdsale(uint256 _rate, uint256 _softCap, uint256 _hardCap, uint256[] _stageGoals, uint256[] _stageBonuses) public {
+  constructor(uint256 _rate, uint256 _softCap, uint256 _hardCap, uint256[] _stageGoals, uint256[] _stageBonuses) public {
     require(_rate > 0);
     require(_softCap > 0);
     require(_hardCap > _softCap);

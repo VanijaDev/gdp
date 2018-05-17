@@ -1,4 +1,4 @@
-pragma solidity ^0.4.20;
+pragma solidity ^0.4.23;
 
 import '../utils/RefundVault.sol';
 import './StagesCrowdsale.sol';
@@ -19,7 +19,7 @@ contract RefundableCrowdsale is TimedCrowdsale, StagesCrowdsale {
   /**
    * @dev Constructor, creates RefundVault.
    */
-  function RefundableCrowdsale(uint256 _softCap, uint256 _hardCap, uint256 _openingTime, uint256 _closingTime, uint256 _basicRate, uint256[] _stageGoals, uint256[] _stageBonuses)
+  constructor(uint256 _softCap, uint256 _hardCap, uint256 _openingTime, uint256 _closingTime, uint256 _basicRate, uint256[] _stageGoals, uint256[] _stageBonuses)
     TimedCrowdsale(_openingTime, _closingTime)
     StagesCrowdsale(_basicRate, _softCap, _hardCap, _stageGoals, _stageBonuses) public {
       vault = new RefundVault();

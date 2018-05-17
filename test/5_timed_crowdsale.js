@@ -44,7 +44,7 @@ contract('TimedCrowdsale', (accounts) => {
 
       await crowdsale.updateClosingTime(closeUp);
 
-      let close = new BigNumber(await crowdsale.closingTime.call()).toFixed();
+      let close = new BigNumber(await crowdsale.closingTime.call()).toNumber();
       assert.equal(close, closeUp, 'closing time is wrong after update');
     });
   });

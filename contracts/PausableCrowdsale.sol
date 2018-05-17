@@ -1,6 +1,6 @@
-pragma solidity ^0.4.20;
+pragma solidity ^0.4.23;
 
-import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
+import '../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol';
 
 /**
  * @title PausableCrowdsale
@@ -29,12 +29,12 @@ contract PausableCrowdsale is Ownable {
  */
     function pauseCrowdsale() public onlyOwner {
         isPaused = true;
-        CrowdsalePaused();
+        emit CrowdsalePaused();
     }
 
     function restoreCrowdsale() public onlyOwner {
         isPaused = false;
-        CrowdsaleRestored();
+        emit CrowdsaleRestored();
     }
   
 }

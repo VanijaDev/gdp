@@ -1,6 +1,6 @@
-pragma solidity ^0.4.20;
+pragma solidity ^0.4.23;
 
-import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
+import '../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol';
 
 
 contract TimedCrowdsale is Ownable {
@@ -20,7 +20,7 @@ contract TimedCrowdsale is Ownable {
    * @param _openingTime Crowdsale opening time
    * @param _closingTime Crowdsale closing time
    */
-  function TimedCrowdsale(uint256 _openingTime, uint256 _closingTime) public {
+  constructor(uint256 _openingTime, uint256 _closingTime) public {
     require(_openingTime >= now);
     require(_closingTime > _openingTime);
 

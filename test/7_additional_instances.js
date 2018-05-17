@@ -59,7 +59,7 @@ contract('RefundableCrowdsale - new instance', (accounts) => {
 
       await crowdsaleLocal.sendTransaction({
         from: ACC_1,
-        value: sc
+        value: sc.toNumber()
       });
 
       await asserts.throws(crowdsaleLocal.claimRefund({
@@ -70,7 +70,7 @@ contract('RefundableCrowdsale - new instance', (accounts) => {
     it('should validate refund is NOT AVAILABLE if ICO ended by time, but softcap not reached', async () => {
       await crowdsaleLocal.sendTransaction({
         from: ACC_1,
-        value: ACC_1_WEI_SENT
+        value: ACC_1_WEI_SENT.toNumber()
       });
 
       await asserts.throws(crowdsaleLocal.claimRefund({
@@ -81,7 +81,7 @@ contract('RefundableCrowdsale - new instance', (accounts) => {
     it('should validate refund is AVAILABLE if softcap not reached and ICO end running by time', async () => {
       await crowdsaleLocal.sendTransaction({
         from: ACC_1,
-        value: ACC_1_WEI_SENT
+        value: ACC_1_WEI_SENT.toNumber()
       });
       let ACC_1_AFTER_PURCHASE = new BigNumber(await web3.eth.getBalance(ACC_1));
 
@@ -94,14 +94,14 @@ contract('RefundableCrowdsale - new instance', (accounts) => {
       await web3.eth.sendTransaction({
         from: wallet,
         to: vault,
-        value: ACC_1_WEI_SENT
+        value: ACC_1_WEI_SENT.toNumber()
       });
 
       await asserts.doesNotThrow(crowdsaleLocal.claimRefund({
         from: ACC_1
       }));
 
-      assert.isAbove((await web3.eth.getBalance(ACC_1)).toFixed(), ACC_1_AFTER_PURCHASE, 'wrong funds after refund');
+      assert.isAbove((await web3.eth.getBalance(ACC_1)).toNumber(), ACC_1_AFTER_PURCHASE, 'wrong funds after refund');
     });
 
     it('should not let not owner to kill ICO', async () => {
@@ -121,10 +121,10 @@ contract('RefundableCrowdsale - new instance', (accounts) => {
       let tokenLocal_1;
       let mock = CrowdsaleMock.crowdsaleMock();
       let start = new BigNumber(await crowdsaleLocal.closingTime.call()).plus(new BigNumber(IncreaseTime.duration.minutes(2)));
-      let end = start.plus(new BigNumber(IncreaseTime.duration.days(1))).toFixed();
+      let end = start.plus(new BigNumber(IncreaseTime.duration.days(1)));
 
       tokenLocal_1 = await GDPToken.new();
-      crowdsaleLocal_1 = await GDPCrowdsale.new(start, end, mock.rate, mock.stageGoals, mock.stageBonuses, mock.wallet, mock.softCap, mock.hardCap, tokenLocal_1.address);
+      crowdsaleLocal_1 = await GDPCrowdsale.new(start.toNumber(), end.toNumber(), mock.rate, mock.stageGoals, mock.stageBonuses, mock.wallet, mock.softCap, mock.hardCap, tokenLocal_1.address);
       await tokenLocal_1.transferOwnership(crowdsaleLocal_1.address);
 
       await IncreaseTime.increaseTimeTo(end + IncreaseTime.duration.minutes(1));
@@ -134,10 +134,10 @@ contract('RefundableCrowdsale - new instance', (accounts) => {
         from: ACC_1
       }), 'not owner can not burn tokens');
 
-      await assert.isAbove(new BigNumber(await tokenLocal_1.balanceOf(crowdsaleLocal_1.address)).toFixed(), 0, 'crowdsale should have tokens');
+      await assert.isAbove(new BigNumber(await tokenLocal_1.balanceOf(crowdsaleLocal_1.address)).toNumber(), 0, 'crowdsale should have tokens');
 
       await asserts.doesNotThrow(crowdsaleLocal_1.burnTokens(), 'owner should be able to burn tokens');
-      await assert.equal(new BigNumber(await tokenLocal_1.balanceOf(crowdsaleLocal_1.address)).toFixed(), 0, 'crowdsale balance should be 0');
+      await assert.equal(new BigNumber(await tokenLocal_1.balanceOf(crowdsaleLocal_1.address)).toNumber(), 0, 'crowdsale balance should be 0');
 
       // 2) should not let update if time is over
       let latestTime = LatestTime.latestTime();
@@ -145,7 +145,6 @@ contract('RefundableCrowdsale - new instance', (accounts) => {
       let closeUp = openUp + IncreaseTime.duration.weeks(2);
 
       await asserts.throws(crowdsaleLocal_1.updateClosingTime(closeUp), 'closingTime can not be updated if time is over');
-
     });
   });
 });

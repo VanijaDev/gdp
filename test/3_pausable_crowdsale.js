@@ -70,7 +70,7 @@ contract('PausableCrowdsale', (accounts) => {
       //  buy tokens
       await asserts.throws(crowdsale.sendTransaction({
         from: ACC_1,
-        value: ACC_1_WEI_SENT
+        value: ACC_1_WEI_SENT.toNumber()
       }), 'purchase can not be performed, while crowdsale is paused');
 
       //  manual transfer

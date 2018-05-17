@@ -1,8 +1,8 @@
-pragma solidity ^0.4.20;
+pragma solidity ^0.4.23;
 
-import '../node_modules/zeppelin-solidity/contracts/math/SafeMath.sol';
-import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
-import '../node_modules/zeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
+import '../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol';
+import '../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol';
+import '../node_modules/openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
 
 contract GDPToken is Ownable, StandardToken {
   using SafeMath for uint256;
@@ -12,7 +12,7 @@ contract GDPToken is Ownable, StandardToken {
   string public constant symbol = "GDP";
   uint8 public constant decimals = 18;
 
-  function GDPToken() public {
+  constructor () public {
     totalSupply_ = maxAmountInETH.mul(uint(10)**decimals);  //  100 000 000 tokens
     balances[owner] = totalSupply_;
   }
