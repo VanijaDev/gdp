@@ -1,7 +1,6 @@
 {
   "name": "gdp",
   "version": "1.0.0",
-  "description": "ICO for Goods Digital Passport GDP token",
   "main": "truffle-config.js",
   "directories": {
     "test": "test"
@@ -28,15 +27,16 @@
   },
   "homepage": "https://github.com/VanijaDev/gdp#readme",
   "dependencies": {
-    "bignumber.js": "^7.0.1",
-    "truffle": "4.1.8",
-    "openzeppelin-solidity": "1.9.0",
-    "truffle-hdwallet-provider": "0.0.5",
-    "ganache-cli": "^6.1.0",
     "big-number": "^0.4.0",
     "bluebird": "^3.5.0",
     "chai": "^4.1.2",
+    "ganache-cli": "^6.1.0",
     "npm": "^5.8.0",
+    "openzeppelin-solidity": "1.9.0",
+    "truffle": "4.1.8",
+    "truffle-hdwallet-provider": "0.0.3",
     "web3": "^1.0.0-beta.33"
-  }
+  },
+  "devDependencies": {},
+  "description": "ICO for Goods Digital Passport GDP token"
 }
