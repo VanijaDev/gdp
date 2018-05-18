@@ -113,6 +113,11 @@ contract('RefundableCrowdsale - new instance', (accounts) => {
     it('should let kill when ICO is being finished', async () => {
       await asserts.doesNotThrow(crowdsaleLocal.killContract(), 'should let kill when ICO is being finished');
     });
+
+    it('should transfer token ownership to ICO owner after ICO contract being killed', async () => {
+      await crowdsaleLocal.killContract();
+      assert.equal(await tokenLocal.owner.call(), OWNER, 'token owner should be ICO owner');
+    });
   });
 
   describe('create new crowdsale', () => {

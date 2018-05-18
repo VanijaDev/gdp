@@ -144,8 +144,13 @@ contract GDPCrowdsale is PausableCrowdsale, RefundableCrowdsale {
     token.burnTokens();
   }
 
+/**
+ *  @dev token ownership will be transferred to ICO owner
+ */
   function killContract() public onlyOwner {
     require(!isRunning());
+    token.transferOwnership(owner);
+
     selfdestruct(owner);
   }
 
